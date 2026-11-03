@@ -3,7 +3,7 @@
   var KEY = 'mulpum-prototype-v1';
   var SEED = window.SEED, ILL = window.ILL;
   var S = load();
-  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0 };
+  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0, tour: { open: true, i: 0 } };
 
   // ── 저장 ──
   function fresh() { var s = JSON.parse(JSON.stringify(SEED)); s.me = null; s.fav = ['L3']; s.seq = 100; return s; }
@@ -351,16 +351,37 @@
   }
   function notFound() { return '<div class="card empty"><b>찾을 수 없어요</b><a class="btn" href="#/home" style="margin-top:12px">홈으로</a></div>'; }
 
+  // ── 시연 안내 ──
+  var TOUR = [
+    { t: '시작하기', d: '가상 기관 「새빛초」의 물품 담당자 김새빛으로 들어갑니다. 시연 데이터도 처음 상태로 맞춥니다.', go: function () { S = fresh(); S.me = 'u1'; save(); ui.draft = null; ui.step = 0; go('#/home'); } },
+    { t: '홈: 오늘 할 일', d: '들어오자마자 내가 해야 할 일만 보입니다. 주황은 마저 할 일, 파랑은 주고받기 내 차례, 빨강은 멈춘 건입니다. 아래에는 우리 물품마다 7칸 진행 막대가 붙어 있습니다.', go: function () { go('#/home'); } },
+    { t: '주고받기: 내 차례', d: '한결도서관이 우리 마이크 1개를 신청했습니다. 오른쪽 「1개 예비 배정」을 눌러 보세요. 진행 막대와 기록이 함께 바뀝니다.', go: function () { go('#/deal/T2'); } },
+    { t: '물품 찾기', d: '카드에서 증빙 확인, 상태별 수량, 기관·자치구·거리를 보고 판단합니다. 「가까운 순」 정렬과 「양호만」 걸러 보기를 눌러 보세요.', go: function () { go('#/market'); } },
+    { t: '물품 상세와 신청', d: '상태를 큰 버튼으로 고르고 수량을 정하면 예상 배송비가 바로 나옵니다. 「받기 신청」을 누르면 주고받기 한 건이 생깁니다.', go: function () { go('#/lot/L1'); } },
+    { t: '물품 올리기', d: '사진·에듀파인 엑셀·대장, 어느 입구로 들어와도 같은 다섯 단계입니다. 2단계의 AI 제안은 「넣기」를 눌러야 들어갑니다. 끝까지 가서 「검토 요청」을 눌러 보세요.', go: function () { ui.draft = null; ui.step = 0; go('#/new'); } },
+    { t: '검토자가 게시하기', d: '업무 검토자 박검토로 바꿨습니다. 홈의 「검토해 주세요」를 눌러 확인 3가지를 체크하고 게시합니다. 작성자는 스스로 게시할 수 없습니다.', go: function () { S.me = 'u2'; save(); go('#/home'); } },
+    { t: '끝까지 간 한 건', d: '푸른고와 주고받은 의자 10개입니다. 신청부터 대장 반영까지 7단계가 모두 채워졌고, 누가 언제 무엇을 했는지 기록이 남습니다.', go: function () { S.me = 'u1'; save(); go('#/deal/T3'); } }
+  ];
+  function tourPanel() {
+    var T = ui.tour, st = TOUR[T.i];
+    if (!T.open) return '<button class="tour-fab" data-act="tour-toggle">시연 안내 열기</button>';
+    return '<aside class="tour" aria-label="시연 안내"><div class="between"><span class="label">시연 안내 · ' + (T.i + 1) + ' / ' + TOUR.length + '</span><button class="iconbtn" style="width:30px;height:30px" data-act="tour-toggle" aria-label="시연 안내 접기">' + icon('x') + '</button></div>' +
+      '<div class="tour-dots">' + TOUR.map(function (x, i) { return '<button data-act="tour-go" data-i="' + i + '" class="' + (i === T.i ? 'on' : i < T.i ? 'd' : '') + '" aria-label="' + (i + 1) + '단계 ' + x.t + '"></button>'; }).join('') + '</div>' +
+      '<b>' + esc(st.t) + '</b><p>' + esc(st.d) + '</p>' +
+      '<div class="row"><button class="btn sm" data-act="tour-prev"' + (T.i ? '' : ' disabled') + '>이전</button>' +
+      (T.i === 0 && !S.me ? '<button class="btn sm pri" data-act="tour-go" data-i="0">시연 시작</button>' : T.i < TOUR.length - 1 ? '<button class="btn sm pri" data-act="tour-next">다음: ' + esc(TOUR[T.i + 1].t) + '</button>' : '<button class="btn sm pri" data-act="tour-go" data-i="0">처음부터</button>') + '</div></aside>';
+  }
+
   // ── 그리기 ──
   function render() {
     var parts = location.hash.replace(/^#\/?/, '').split('/'), r = parts[0] || 'home', id = parts[1];
     var app = $('#app');
-    if (!S.me || !me()) { app.innerHTML = vLogin(); document.title = '물품이음 시안'; return; }
+    if (!S.me || !me()) { app.innerHTML = vLogin() + tourPanel(); document.title = '물품이음 시안'; return; }
     var html, opts = {};
     if (r === 'lot') { var v = vLot(id); html = v.html || v; if (v.sticky) { opts.sticky = true; opts.stickyHtml = v.sticky; } }
     else html = r === 'market' ? vMarket() : r === 'mine' ? vMine() : r === 'deals' ? vDeals() : r === 'deal' ? vDeal(id) : r === 'new' ? vNew() : r === 'more' ? vMore() : (r = 'home', vHome());
     var focusId = document.activeElement && document.activeElement.id;
-    app.innerHTML = shell(r, html, opts);
+    app.innerHTML = shell(r, html, opts) + tourPanel();
     document.title = (CRUMB[r] || '물품이음') + ' · 물품이음 시안';
     var q = focusId === 'q' && $('#q');
     if (q) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
@@ -385,6 +406,10 @@
       case 'logout': S.me = null; save(); go('#/home'); render(); break;
       case 'reset': var who = S.me; S = fresh(); S.me = who; save(); ui.draft = null; ui.step = 0; toast('시연 데이터를 처음으로 되돌렸습니다'); render(); break;
       case 'help': e.preventDefault(); ui.help = !ui.help; render(); break;
+      case 'tour-toggle': ui.tour.open = !ui.tour.open; render(); break;
+      case 'tour-go': ui.tour.i = +b.dataset.i; TOUR[ui.tour.i].go(); render(); window.scrollTo(0, 0); break;
+      case 'tour-next': ui.tour.i = Math.min(TOUR.length - 1, ui.tour.i + 1); TOUR[ui.tour.i].go(); render(); window.scrollTo(0, 0); break;
+      case 'tour-prev': ui.tour.i = Math.max(0, ui.tour.i - 1); TOUR[ui.tour.i].go(); render(); window.scrollTo(0, 0); break;
       case 'cat': ui.cat = b.dataset.v; render(); break;
       case 'toggle': ui[b.dataset.k] = !ui[b.dataset.k]; render(); break;
       case 'fav': e.preventDefault(); var i = S.fav.indexOf(id); if (i >= 0) S.fav.splice(i, 1); else S.fav.push(id); save(); toast(i >= 0 ? '관심물품에서 뺐습니다' : '관심물품에 담았습니다'); render(); break;

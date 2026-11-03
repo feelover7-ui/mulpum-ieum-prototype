@@ -289,3 +289,22 @@ textarea{min-height:80px;resize:vertical}
   .rowlist .r{grid-column:2;flex-direction:row;align-items:center;justify-content:flex-start}
 }
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* 시연 안내 칸: 발표할 때 순서를 따라가는 떠 있는 칸 */
+.tour{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));width:min(340px,calc(100% - 32px));background:var(--k);color:#fff;border-radius:16px;padding:14px 16px 16px;box-shadow:0 12px 32px rgba(10,30,22,.28);z-index:25;display:flex;flex-direction:column;gap:8px}
+.tour .label{color:#b9d6c9}
+.tour b{font-size:16px}
+.tour p{font-size:13.5px;color:#dce9e2;line-height:1.55}
+.tour .iconbtn{background:transparent;border-color:rgba(255,255,255,.25);color:#fff}
+.tour .btn{background:transparent;color:#fff;border-color:rgba(255,255,255,.3)}
+.tour .btn.pri{background:#fff;color:var(--k);border-color:#fff}
+.tour .btn:disabled{opacity:.35}
+.tour-dots{display:flex;gap:5px}
+.tour-dots button{width:22px;height:6px;border-radius:3px;border:0;background:rgba(255,255,255,.22);padding:0}
+.tour-dots button.d{background:#8fc9b2}.tour-dots button.on{background:#fff}
+.tour-fab{position:fixed;left:max(16px,env(safe-area-inset-left,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--k);color:#fff;border:0;border-radius:999px;padding:10px 16px;font-weight:700;z-index:25;box-shadow:0 8px 20px rgba(10,30,22,.25)}
+@media(max-width:900px){
+  .tour,.tour-fab{bottom:calc(70px + env(safe-area-inset-bottom,0px));left:12px}
+  .tour{width:calc(100% - 24px);padding:12px 14px}
+  .has-sticky ~ .tour,.has-sticky ~ .tour-fab{bottom:calc(130px + env(safe-area-inset-bottom,0px))}
+}
