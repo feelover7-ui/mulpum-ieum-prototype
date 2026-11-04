@@ -450,3 +450,4 @@ textarea{min-height:84px;resize:vertical}
 }
 .ask .stepperq{width:max-content}
 @media(max-width:900px){.deal-grid{display:flex;flex-direction:column}.deal-side{order:-1}}
+.hello-art svg{width:80%;height:80%}
