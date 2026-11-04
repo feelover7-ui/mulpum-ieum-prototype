@@ -3,7 +3,7 @@
   var KEY = 'mulpum-prototype-v1';
   var SEED = window.SEED, ILL = window.ILL;
   var S = load();
-  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0, tour: { open: true, i: 0 } };
+  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0, tour: { open: true, i: 0 }, boardF: 'all', boardCol: 'me' };
 
   // ── 저장 ──
   function fresh() { var s = JSON.parse(JSON.stringify(SEED)); s.me = null; s.fav = ['L3']; s.seq = 100; return s; }
@@ -21,7 +21,7 @@
       more: '<circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/>', plus: '<path d="M12 5v14M5 12h14"/>',
       help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6V14M12 17.5v.01"/>', back: '<path d="M15 18l-6-6 6-6"/>',
       heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>', shield: '<path d="M12 3l8 3v6c0 4.5-3.4 8.2-8 9-4.6-.8-8-4.5-8-9V6z"/><path d="M9 12l2 2 4-4"/>',
-      x: '<path d="M6 6l12 12M18 6L6 18"/>', truck: '<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>'
+      x: '<path d="M6 6l12 12M18 6L6 18"/>', grid: '<rect x="3" y="4" width="5" height="16" rx="1.5"/><rect x="10" y="4" width="5" height="10" rx="1.5"/><rect x="17" y="4" width="4" height="13" rx="1.5"/>', truck: '<path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>'
     }[name];
     return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + p + '</svg>';
   }
@@ -83,69 +83,81 @@
   function myDeals() { return S.transfers.filter(function (t) { return t.from === myOrg() || t.to === myOrg(); }); }
   function todoCount() { return reviewQueue().length + myDeals().filter(function (t) { return myTurn(t); }).length; }
 
-  // ── 틀 ──
-  var NAV = [['home', '홈', 'home'], ['market', '물품 찾기', 'search'], ['mine', '우리 물품', 'box'], ['deals', '주고받기', 'swap'], ['more', '더보기', 'more']];
-  var CRUMB = { home: '홈', market: '물품 찾기', lot: '물품 찾기 › 물품', mine: '우리 물품', deals: '주고받기', deal: '주고받기 › 한 건', more: '더보기', 'new': '물품 올리기' };
+  // ── 틀: 위 머리줄 메뉴(데스크톱) + 아래 탭(휴대폰) ──
+  var NAV = [['home', '홈', 'home'], ['market', '물품 찾기', 'search'], ['board', '우리 기관 보드', 'grid'], ['more', '더보기', 'more']];
+  var CRUMB = { home: '홈', market: '물품 찾기', lot: '물품', board: '우리 기관 보드', deal: '주고받기', more: '더보기', 'new': '물품 올리기' };
   function shell(route, body, opts) {
-    var u = me(), o = org(u.org), todo = todoCount(), dealTodo = myDeals().filter(function (t) { return myTurn(t); }).length;
-    var badge = function (id) { var n = id === 'home' ? todo : id === 'deals' ? dealTodo : 0; return n ? '<span class="ct">' + n + '</span>' : ''; };
-    var active = function (id) { return route === id || (id === 'market' && route === 'lot') || (id === 'deals' && route === 'deal'); };
-    return '<div class="shell' + (opts && opts.sticky ? ' has-sticky' : '') + '">' +
-      '<aside class="side" aria-label="주 메뉴"><a class="brand" href="#/home"><img src="favicon.svg" alt="">' + '<span>물품이음<small>학교의 물건, 새로운 쓰임</small></span></a>' +
-      (u.role !== 'ADMIN' ? '<a class="cta" href="#/new">' + icon('plus') + '물품 올리기</a>' : '') +
-      NAV.map(function (n) { return '<a class="nv ' + (active(n[0]) ? 'on' : '') + '" href="#/' + n[0] + '"' + (active(n[0]) ? ' aria-current="page"' : '') + '>' + icon(n[2]) + n[1] + badge(n[0]) + '</a>'; }).join('') +
-      '<div class="me"><b>' + esc(o.name) + '</b>' + esc(u.name) + ' · ' + (u.role === 'REVIEWER' ? '업무 검토자' : '물품 담당자') + '</div></aside>' +
-      '<div class="main"><header class="top"><a class="mbrand" href="#/home"><img src="favicon.svg" alt="">물품이음</a><span class="crumb">' + esc(CRUMB[route] || '') + '</span><span class="sp"></span>' +
-      '<button class="iconbtn" data-act="help" aria-label="도움말 열기" title="도움말">' + icon('help') + '</button></header>' +
-      '<div class="demo"><b>시안</b>모든 기관·물품·사람은 가상 데이터입니다. 실제 행정처리가 아닙니다.</div>' +
-      '<main class="page" id="main" tabindex="-1">' + body + '</main></div>' +
+    var u = me(), todo = todoCount();
+    var active = function (id) { return route === id || (id === 'market' && route === 'lot') || (id === 'board' && route === 'deal'); };
+    var badge = function (id) { return (id === 'home' || id === 'board') && todo ? '<span class="ct">' + todo + '</span>' : ''; };
+    return '<div class="shell' + (opts && opts.sticky ? ' has-sticky' : '') + (route === 'board' ? ' is-board' : '') + '">' +
+      '<header class="hd"><div class="hd-in"><a class="logo" href="#/home"><img src="favicon.svg" alt="">물품이음</a>' +
+      '<nav class="hd-nav" aria-label="주 메뉴">' + NAV.map(function (n) { return '<a class="' + (active(n[0]) ? 'on' : '') + '" href="#/' + n[0] + '"' + (active(n[0]) ? ' aria-current="page"' : '') + '>' + n[1] + badge(n[0]) + '</a>'; }).join('') + '</nav>' +
+      '<span class="sp"></span>' +
+      (todo ? '<a class="todo-pill" href="#/home">할 일 ' + todo + '</a>' : '') +
+      '<button class="iconbtn" data-act="help" aria-label="도움말 열기" title="도움말">' + icon('help') + '</button>' +
+      '<a class="btn ink new-btn" href="#/new">' + icon('plus') + '올리기</a>' +
+      '<span class="who" title="' + esc(org(u.org).name) + '">' + esc(org(u.org).short) + ' ' + esc(u.name) + '<small>' + (u.role === 'REVIEWER' ? '업무 검토자' : '물품 담당자') + '</small></span></div></header>' +
+      '<div class="demo"><b>시안</b>모든 기관·물품·사람은 가상이에요. 실제 행정처리가 아니에요.</div>' +
+      '<main class="page" id="main" tabindex="-1">' + body + '</main>' +
       '<nav class="tabbar" aria-label="모바일 메뉴">' +
-      [['home', '홈', 'home'], ['market', '찾기', 'search'], ['new', '올리기', 'plus'], ['mine', '우리 물품', 'box'], ['deals', '주고받기', 'swap']].map(function (n) {
+      [['home', '홈', 'home'], ['market', '찾기', 'search'], ['new', '올리기', 'plus'], ['board', '보드', 'grid'], ['more', '더보기', 'more']].map(function (n) {
         var inner = n[0] === 'new' ? '<span class="plus">' + icon('plus') + '</span>' : icon(n[2]);
-        return '<a class="' + (active(n[0]) || route === n[0] ? 'on' : '') + '" href="#/' + n[0] + '">' + inner + n[1] + badge(n[0]) + '</a>';
+        return '<a class="' + (active(n[0]) || route === n[0] ? 'on' : '') + '" href="#/' + n[0] + '">' + inner + n[1] + (n[0] === 'board' ? badge('board') : '') + '</a>';
       }).join('') + '</nav>' + (opts && opts.stickyHtml ? opts.stickyHtml : '') + '</div>' + (ui.help ? helpDrawer(route) : '');
   }
 
   // ── 로그인 ──
   function vLogin() {
-    return '<div class="login"><div class="l"><div class="row" style="font-weight:800;font-size:20px"><img src="favicon.svg" alt="" width="38" height="38">물품이음</div>' +
-      '<div><h1>우리 학교의 물건이,<br>다른 학교의 <em>새로운 쓰임</em>으로.</h1><p class="mut" style="margin-top:14px;font-size:16px">불용결정된 물품을 사진으로 찾고, 필요한 만큼 신청하고, 두 기관의 인계와 증빙까지 한 화면에서 이어 갑니다.</p></div>' +
-      '<div class="flowline"><span>등록</span>→<span>검토</span>→<span>나눔</span>→<span>신청·배정</span>→<span>인계</span>→<span>인수</span>→<span>완료</span></div></div>' +
-      '<div class="r"><h2 style="font-size:22px">시연 계정으로 둘러보기</h2><p class="mut">전면 개선안 시안입니다. 계정을 고르면 바로 들어갑니다.</p>' +
-      S.users.map(function (u) { return '<button class="acct" data-act="login" data-id="' + u.id + '"><span class="av">' + esc(u.name.slice(0, 1)) + '</span><span><b>' + esc(u.name) + ' · ' + (u.role === 'REVIEWER' ? '업무 검토자' : '물품 담당자') + '</b><span>' + esc(org(u.org).name) + ' · ' + (u.role === 'REVIEWER' ? '게시 전 증빙 검토' : '물품 등록·신청·인계') + '</span></span></button>'; }).join('') +
-      '<p class="notice amber">가상 데이터로 만든 디자인 시안입니다. 실제 행정자료를 입력하지 마세요. 입력한 내용은 이 브라우저에만 저장됩니다.</p></div></div>';
+    return '<div class="login"><div class="l"><div class="logo big"><img src="favicon.svg" alt="">물품이음</div>' +
+      '<div><h1>우리 학교의 물건이,<br>다른 학교의 <em>새로운 쓰임</em>으로.</h1><p>불용결정된 물건을 사진으로 찾고, 필요한 만큼 신청하고, 두 기관의 인계와 증빙까지 한 곳에서 이어 가요.</p></div>' +
+      '<div class="login-tiles">' + ['board', 'mon', 'chair', 'stand'].map(function (k, i) { return '<div class="tile c' + (i + 1) + '">' + ill(k) + '</div>'; }).join('') + '</div></div>' +
+      '<div class="r"><h2>시연 계정으로 둘러보기</h2><p class="mut">계정을 고르면 바로 들어가요.</p>' +
+      S.users.map(function (u) { return '<button class="acct" data-act="login" data-id="' + u.id + '"><span class="av">' + esc(u.name.slice(0, 1)) + '</span><span><b>' + esc(u.name) + ' 선생님 · ' + (u.role === 'REVIEWER' ? '업무 검토자' : '물품 담당자') + '</b><span>' + esc(org(u.org).name) + ' · ' + (u.role === 'REVIEWER' ? '게시 전 증빙을 확인해요' : '물건을 올리고, 신청하고, 보내요') + '</span></span></button>'; }).join('') +
+      '<p class="notice amber">가상 데이터로 만든 시안이에요. 실제 행정자료는 넣지 마세요. 입력한 내용은 이 브라우저에만 저장돼요.</p></div></div>';
   }
 
-  // ── 홈 ──
-  function vHome() {
-    var u = me(), rq = reviewQueue(), deals = myDeals();
-    var turn = deals.filter(function (t) { return myTurn(t) && t.state !== 'DISPUTED'; });
-    var disputed = deals.filter(function (t) { return t.state === 'DISPUTED'; });
-    var waiting = deals.filter(function (t) { return theirTurn(t); });
-    var drafts = myDrafts();
-    var total = rq.length + turn.length + disputed.length;
-    var cards = [];
-    if (u.role === 'REVIEWER') cards.push(task('amber', '검토해 주세요', rq.length, rq.length ? rq.map(function (l) { return l.title; }).slice(0, 2).join(', ') + ' · 작성자 김새빛' : '검토할 물품이 없습니다', rq.length ? '#/lot/' + rq[0].id : '#/mine', '검토하기'));
-    else cards.push(task('amber', '마저 작성하기', drafts.length, drafts.length ? drafts.map(function (l) { return l.title; }).join(', ') : '작성 중인 물품이 없습니다', drafts.length ? '#/lot/' + drafts[0].id : '#/new', drafts.length ? '이어서 작성' : '물품 올리기'));
-    cards.push(task('blue', '주고받기 · 내 차례', turn.length, turn.length ? turn.map(function (t) { return myTurn(t) + ' · ' + lot(t.lot).title; })[0] + (turn.length > 1 ? ' 외 ' + (turn.length - 1) + '건' : '') : '지금 내 차례인 건이 없습니다', turn.length ? '#/deal/' + turn[0].id : '#/deals', turn.length ? '처리하기' : '전체 보기'));
-    cards.push(task('red', '멈춤 · 수량 불일치', disputed.length, disputed.length ? lot(disputed[0].lot).title + ' · 양쪽 확인 필요' : '멈춘 건이 없습니다', disputed.length ? '#/deal/' + disputed[0].id : '#/deals', disputed.length ? '확인하기' : '기록 보기'));
-    var mine = S.lots.filter(function (l) { return l.org === myOrg(); }).slice(0, 5);
-    var near = S.lots.filter(function (l) { return l.org !== myOrg() && l.state === 'PUBLISHED'; }).sort(function (a, b) { return a.days - b.days; }).slice(0, 4);
-    return '<div><h1 class="h1">안녕하세요, ' + esc(u.name) + '님</h1><p class="sub">' + esc(org(u.org).name) + ' · 내가 해야 할 일 ' + total + '건</p></div>' +
-      '<section class="tasks" aria-label="오늘 할 일">' + cards.join('') + '</section>' +
-      (waiting.length ? '<div class="notice">' + waiting.map(function (t) { return '<b>' + esc(lot(t.lot).title) + '</b> · ' + theirTurn(t); }).join('<br>') + '</div>' : '') +
-      '<div class="two"><section class="card"><div class="between" style="margin-bottom:6px"><h2 class="label">우리 물품 진행 상황</h2><a class="mut" href="#/mine" style="font-size:13px">전체 보기 →</a></div><div class="list">' +
-      mine.map(function (l) { return '<a class="li" href="#/lot/' + l.id + '"><div class="ill">' + ill(l.ill) + '</div><div><b>' + esc(l.title) + '</b><span class="s">' + (PILL[l.state] || [''])[0] + ' · ' + avail(l) + '개 남음' + dealsOf(l).filter(function (t) { return t.state === 'REQUESTED'; }).map(function () { return ' · 신청 대기'; }).slice(0, 1).join('') + '</span>' + mini(l.state) + '</div>' + pill(l.state) + '</a>'; }).join('') +
-      '</div></section><section class="card"><div class="between" style="margin-bottom:6px"><h2 class="label">이웃 기관 새 물품</h2><a class="mut" href="#/market" style="font-size:13px">찾기 →</a></div><div class="list">' +
-      near.map(function (l) { return '<a class="li" href="#/lot/' + l.id + '"><div class="ill">' + ill(l.ill) + '</div><div><b>' + esc(l.title) + '</b><span class="s">' + esc(org(l.org).short) + ' · ' + km(l.org) + 'km · ' + ago(l.days) + '</span></div><span class="pill p-green">' + avail(l) + '개</span></a>'; }).join('') +
-      '</div></section></div>';
+  // ── 할 일 목록 (홈 인사말·보드 공통) ──
+  var VERB = { REQUESTED: '선정하기', RESERVED: '인계 기록하기', SENT: '받은 수량 확인', RECEIVED: '대장 반영 확인', DISPUTED: '불일치 확인' };
+  function short(s) { return s.replace(/\s*\(.*?\)\s*/g, '').replace(/ 세트$/, '').split(' ').slice(-2).join(' '); }
+  function tasks() {
+    var u = me(), out = [];
+    reviewQueue().forEach(function (l) { out.push({ href: '#/lot/' + l.id, label: short(l.title) + ' 검토하기', say: short(l.title) + ' 검토' }); });
+    myDeals().filter(myTurn).forEach(function (t) { var l = lot(t.lot); out.push({ href: '#/deal/' + t.id, label: short(l.title) + ' ' + VERB[t.state], say: (t.from === myOrg() ? org(t.to).short + '에 보낼 ' : '') + short(l.title) + ' ' + VERB[t.state].replace('하기', ''), stop: t.state === 'DISPUTED' }); });
+    if (u.role !== 'REVIEWER') myDrafts().forEach(function (l) { out.push({ href: '#/lot/' + l.id, label: short(l.title) + ' 마저 쓰기', say: short(l.title) + ' 마저 쓰기', soft: true }); });
+    return out;
   }
-  function task(tone, label, n, who, href, btn) {
-    return '<a class="card task ' + tone + '" href="' + href + '"><span class="label">' + label + '</span><div class="n">' + n + '<small>건</small></div><span class="who">' + esc(who) + '</span><span class="btn sm' + (n ? ' pri' : '') + '">' + btn + '</span></a>';
+
+  // ── 홈: 인사(3번 말투) + 사진 피드(1번) ──
+  function vHome() {
+    var u = me(), list = tasks(), hard = list.filter(function (x) { return !x.soft; });
+    var mine = S.lots.filter(function (l) { return l.org === myOrg() && l.state === 'PUBLISHED'; }).sort(function (a, b) { return avail(b) - avail(a); })[0];
+    var incoming = myDeals().filter(function (t) { return t.to === myOrg() && ['REQUESTED', 'RESERVED', 'SENT'].indexOf(t.state) >= 0; })[0];
+    var given = S.transfers.filter(function (t) { return t.from === myOrg() && t.state === 'DONE'; }).reduce(function (s, t) { return s + t.qty; }, 0);
+    var hero = hard.length
+      ? '<h1>오늘은 <em>' + hard.length + '가지</em>만 하면 돼요</h1><p>' + esc(hard.map(function (x) { return x.say; }).join(', ')) + (hard.length > 1 ? '가 남았어요.' : '만 남았어요.') + '</p>'
+      : '<h1>오늘은 <em>할 일이 없어요</em></h1><p>' + (list.length ? esc(list[0].say) + '는 시간 날 때 이어서 하면 돼요. ' : '') + '가까운 학교에 새로 나온 물건을 둘러보세요.</p>';
+    var btns = (hard.length ? hard : list).slice(0, 2).map(function (x, i) { return '<a class="btn ' + (i ? 'white' : 'pri') + ' lg" href="' + x.href + '">' + esc(x.label) + '</a>'; }).join('') || '<a class="btn pri lg" href="#/market">물건 둘러보기</a>';
+    var near = S.lots.filter(function (l) { return l.org !== myOrg() && l.state === 'PUBLISHED' && avail(l) > 0; }).sort(function (a, b) { return a.days - b.days || km(a.org) - km(b.org); }).slice(0, 7);
+    return '<section class="hello"><div>' + '<p class="hi">' + esc(org(u.org).short) + ' ' + esc(u.name) + ' 선생님, 안녕하세요</p>' + hero + '<div class="row">' + btns + '</div></div><div class="hello-art">' + ill('box') + '</div></section>' +
+      '<section class="bubbles">' +
+      '<a class="bubble peach" href="' + (mine ? '#/lot/' + mine.id : '#/board') + '"><small>나눔 중</small><b>' + (mine ? esc(short(mine.title)) + ' ' + avail(mine) + '개' : '나눌 물건이 없어요') + '</b><span>' + (mine ? (function (n) { return n ? '신청 ' + n + '건이 들어와 있어요' : '아직 신청은 없어요'; })(dealsOf(mine).filter(function (t) { return t.state === 'REQUESTED'; }).length) : '안 쓰는 물건을 올려 보세요') + '</span></a>' +
+      '<a class="bubble sky" href="' + (incoming ? '#/deal/' + incoming.id : '#/market') + '"><small>받는 중</small><b>' + (incoming ? esc(short(lot(incoming.lot).title)) + ' ' + incoming.qty + '개' : '받는 물건이 없어요') + '</b><span>' + (incoming ? esc(incoming.date) + '에 받아요' : '필요한 물건을 찾아보세요') + '</span></a>' +
+      '<a class="bubble gray" href="#/board"><small>이번 달</small><b>' + given + '개를 이어 줬어요</b><span>' + (given ? '다른 학교에서 다시 쓰이고 있어요' : '첫 나눔을 기다려요') + '</span></a></section>' +
+      '<section class="feed-head"><div><h2>우리 동네 학교에 새로 나온 물건</h2><p class="mut">' + esc(org(u.org).short) + '에서 가까운 순 · 오늘 ' + near.filter(function (l) { return l.days === 0; }).length + '건 새로 올라왔어요</p></div><a class="btn" href="#/market">전체 보기</a></section>' +
+      '<section class="mosaic">' + near.map(function (l, i) { return tile(l, i === 0); }).join('') + (near.length && near.length < 7 ? '<a class="tile more-tile" href="#/market"><b>물건 전체 보기 →</b><span>' + marketList().length + '건이 나눔 중이에요</span></a>' : '') + '</section>';
+  }
+  var CATC = { FURNITURE: 'c1', ELECTRONICS: 'c2', OFFICE: 'c4', EDUCATION: 'c5', OTHER: 'c3' };
+  function tile(l, big) {
+    var own = l.org === myOrg(), fav = S.fav.indexOf(l.id) >= 0;
+    return '<div class="tile-wrap' + (big ? ' big' : '') + '"><a class="tile ' + CATC[l.cat] + '" href="#/lot/' + l.id + '" aria-label="' + esc(l.title) + ', ' + avail(l) + '개, ' + (own ? '우리 기관' : km(l.org) + 'km') + '">' +
+      '<span class="km">' + (own ? '우리' : km(l.org) + 'km') + '</span>' + ill(l.ill) +
+      '<span class="cap"><b>' + esc(l.title) + '</b><span class="q">' + avail(l) + '개</span></span></a>' +
+      '<button class="heart ' + (fav ? 'on' : '') + '" data-act="fav" data-id="' + l.id + '" aria-label="관심물품 ' + (fav ? '빼기' : '담기') + '" aria-pressed="' + fav + '">' + icon('heart') + '</button></div>';
   }
   function dealsOf(l) { return S.transfers.filter(function (t) { return t.lot === l.id; }); }
 
-  // ── 물품 찾기 ──
+  // ── 물품 찾기: 사진 먼저(1번) ──
   function marketList() {
     var q = ui.q.trim();
     return S.lots.filter(function (l) {
@@ -159,27 +171,21 @@
   }
   function vMarket() {
     var base = marketList(), list = base.filter(function (l) { return !ui.cat || l.cat === ui.cat; });
-    list.sort(ui.sort === 'near' ? function (a, b) { return km(a.org) - km(b.org) || a.days - b.days; } : ui.sort === 'new' ? function (a, b) { return a.days - b.days; } : function (a, b) { return avail(b) - avail(a); });
+    var own = function (l) { return l.org === myOrg() ? 1 : 0; };
+    list.sort(ui.sort === 'near' ? function (a, b) { return own(a) - own(b) || km(a.org) - km(b.org) || a.days - b.days; } : ui.sort === 'new' ? function (a, b) { return a.days - b.days; } : function (a, b) { return avail(b) - avail(a); });
     var counts = {}; base.forEach(function (l) { counts[l.cat] = (counts[l.cat] || 0) + 1; });
-    return '<div><h1 class="h1">우리 학교에 필요한 물품을 찾아보세요</h1><p class="sub">다른 기관에서 쓰임을 기다리는 물건, 필요한 만큼 이어 받아요.</p></div>' +
-      '<div class="search">' + icon('search') + '<input type="search" id="q" placeholder="의자, 모니터, 모델명, 기관 이름으로 검색" value="' + esc(ui.q) + '" aria-label="물품 검색"></div>' +
-      '<div class="chips" role="group" aria-label="분류"><button class="chip ' + (!ui.cat ? 'on' : '') + '" data-act="cat" data-v="">전체<small>' + base.length + '</small></button>' +
-      Object.keys(SEED.categories).map(function (k) { return '<button class="chip ' + (ui.cat === k ? 'on' : '') + '" data-act="cat" data-v="' + k + '"' + (counts[k] ? '' : ' disabled') + '>' + SEED.categories[k] + '<small>' + (counts[k] || 0) + '</small></button>'; }).join('') + '</div>' +
+    return '<div class="market-head"><h1 class="h1">무엇이 필요하세요?</h1>' +
+      '<div class="search">' + icon('search') + '<input type="search" id="q" placeholder="의자, 모니터, 모델명, 기관 이름" value="' + esc(ui.q) + '" aria-label="물품 검색"></div></div>' +
+      '<div class="chips" role="group" aria-label="분류"><button class="chip ' + (!ui.cat ? 'on' : '') + '" data-act="cat" data-v="">전체 ' + base.length + '</button>' +
+      Object.keys(SEED.categories).map(function (k) { return '<button class="chip ' + (ui.cat === k ? 'on' : '') + '" data-act="cat" data-v="' + k + '"' + (counts[k] ? '' : ' disabled') + '>' + SEED.categories[k] + ' ' + (counts[k] || 0) + '</button>'; }).join('') + '</div>' +
       '<div class="between"><div class="chips" role="group" aria-label="걸러 보기">' +
-      '<button class="chip ' + (ui.goodOnly ? 'on' : '') + '" data-act="toggle" data-k="goodOnly">양호만</button>' +
-      '<button class="chip ' + (ui.many ? 'on' : '') + '" data-act="toggle" data-k="many">10개 이상</button>' +
-      '<button class="chip ' + (ui.favOnly ? 'on' : '') + '" data-act="toggle" data-k="favOnly">관심물품 ' + S.fav.length + '</button></div>' +
-      '<select id="sort" aria-label="정렬" style="width:auto"><option value="near"' + (ui.sort === 'near' ? ' selected' : '') + '>가까운 순</option><option value="new"' + (ui.sort === 'new' ? ' selected' : '') + '>최근 등록 순</option><option value="many"' + (ui.sort === 'many' ? ' selected' : '') + '>수량 많은 순</option></select></div>' +
-      '<p class="label">다시 쓰임을 기다리는 물품 ' + list.length + '</p>' +
-      (list.length ? '<div class="cards">' + list.map(card).join('') + '</div>' : '<div class="card empty"><b>조건에 맞는 물품이 없어요</b>검색어를 줄이거나 걸러 보기를 풀어 보세요.</div>');
-  }
-  function card(l) {
-    var own = l.org === myOrg(), fav = S.fav.indexOf(l.id) >= 0;
-    return '<div class="lot"><button class="heart ' + (fav ? 'on' : '') + '" data-act="fav" data-id="' + l.id + '" aria-label="관심물품 ' + (fav ? '빼기' : '담기') + '" aria-pressed="' + fav + '">' + icon('heart') + '</button>' +
-      '<a href="#/lot/' + l.id + '"><div class="ph ill">' + ill(l.ill) + '<span class="q">' + avail(l) + '개 가능</span>' + (l.verified ? '<span class="ver pill p-green">증빙 확인</span>' : '') + '</div>' +
-      '<div class="bd"><span class="cat">' + SEED.categories[l.cat] + (own ? ' · 우리 기관' : '') + '</span><b>' + esc(l.title) + '</b>' +
-      '<div class="conds">' + l.groups.filter(function (g) { return !/비공개/.test(g.cond) && g.avail; }).map(function (g) { return '<span>' + g.cond.replace(' 있음', '') + ' ' + g.avail + '</span>'; }).join('') + '</div>' +
-      '<div class="where"><span>' + esc(org(l.org).short) + ' · ' + org(l.org).district + ' · ' + ago(l.days) + '</span><span class="d">' + (own ? '우리' : km(l.org) + 'km') + '</span></div></div></a></div>';
+      '<button class="chip line ' + (ui.goodOnly ? 'on' : '') + '" data-act="toggle" data-k="goodOnly">양호만</button>' +
+      '<button class="chip line ' + (ui.many ? 'on' : '') + '" data-act="toggle" data-k="many">10개 이상</button>' +
+      '<button class="chip line ' + (ui.favOnly ? 'on' : '') + '" data-act="toggle" data-k="favOnly">♥ 관심 ' + S.fav.length + '</button></div>' +
+      '<select id="sort" aria-label="정렬" class="sort"><option value="near"' + (ui.sort === 'near' ? ' selected' : '') + '>가까운 순</option><option value="new"' + (ui.sort === 'new' ? ' selected' : '') + '>최근 순</option><option value="many"' + (ui.sort === 'many' ? ' selected' : '') + '>많은 순</option></select></div>' +
+      (list.length ? '<div class="grid-feed">' + list.map(function (l) {
+        return '<div class="item">' + tile(l) + '<a class="item-meta" href="#/lot/' + l.id + '"><span>' + esc(org(l.org).short) + ' · ' + org(l.org).district + ' · ' + ago(l.days) + '</span>' + (l.verified ? '<span class="ok">' + icon('shield') + '증빙 확인</span>' : '') + '<span class="conds">' + l.groups.filter(function (g) { return !/비공개/.test(g.cond) && g.avail; }).map(function (g) { return '<i>' + g.cond.replace(' 있음', '') + ' ' + g.avail + '</i>'; }).join('') + '</span></a></div>';
+      }).join('') + '</div>' : '<div class="card empty"><b>조건에 맞는 물건이 없어요</b>검색어를 줄이거나 걸러 보기를 풀어 보세요.</div>');
   }
 
   // ── 물품 상세 ──
@@ -190,7 +196,7 @@
     var groups = l.groups.filter(function (g) { return !/비공개/.test(g.cond); });
     var sel = ui.cond[id] != null ? ui.cond[id] : Math.max(0, groups.findIndex(function (g) { return g.avail > 0; }));
     var g = groups[sel] || groups[0], max = g ? g.avail : 0, n = Math.min(ui.qty[id] || 1, Math.max(max, 1));
-    var head = '<div><a class="mut row" href="' + (own ? '#/mine' : '#/market') + '" style="gap:4px;font-size:14px">' + icon('back') + (own ? '우리 물품' : '물품 찾기') + '</a></div>' +
+    var head = '<div><a class="mut row" href="' + (own ? '#/board' : '#/market') + '" style="gap:4px;font-size:14px">' + icon('back') + (own ? '우리 기관 보드' : '물품 찾기') + '</a></div>' +
       '<div class="row" style="gap:12px"><h1 class="h1">' + esc(l.title) + '</h1>' + pill(l.state) + '</div>' +
       '<p class="sub" style="margin-top:-12px">' + SEED.categories[l.cat] + ' · ' + esc(org(l.org).name) + ' · ' + org(l.org).district + (own ? '' : ' · ' + km(l.org) + 'km') + ' · ' + ago(l.days) + ' 등록</p>';
     var left = '<div class="detail"><div style="display:flex;flex-direction:column;gap:16px;min-width:0"><div class="photo ill">' + ill(l.ill) + (l.verified ? '<span class="pill p-green" style="position:absolute;right:12px;top:12px">' + icon('shield') + '불용 증빙 확인</span>' : '') + '</div>' +
@@ -222,35 +228,43 @@
     return { html: head + left + right + '</div>', sticky: sticky };
   }
 
-  // ── 우리 물품 ──
-  function vMine() {
-    var tabs = [['DRAFT', '작성 중', ['DRAFT']], ['REVIEW', '검토 대기', ['REVIEW']], ['PUBLISHED', '나눔 중', ['PUBLISHED']], ['END', '끝남', ['PAUSED', 'CLOSED']]];
-    var mine = S.lots.filter(function (l) { return l.org === myOrg(); });
-    var cur = tabs.filter(function (t) { return t[0] === ui.mineTab; })[0] || tabs[0];
-    var list = mine.filter(function (l) { return cur[2].indexOf(l.state) >= 0; });
-    return '<div class="between"><div><h1 class="h1">우리 물품</h1><p class="sub">우리 기관이 내놓은 물품을 단계별로 봅니다.</p></div><a class="btn pri" href="#/new">' + icon('plus') + '물품 올리기</a></div>' +
-      '<div class="tabs" role="tablist">' + tabs.map(function (t) { var n = mine.filter(function (l) { return t[2].indexOf(l.state) >= 0; }).length; return '<button role="tab" aria-selected="' + (t === cur) + '" class="' + (t === cur ? 'on' : '') + '" data-act="mtab" data-v="' + t[0] + '">' + t[1] + '<small>' + n + '</small></button>'; }).join('') + '</div>' +
-      (list.length ? '<div class="card rowlist" style="padding:0">' + list.map(function (l) {
-        var waiting = dealsOf(l).filter(function (t) { return t.state === 'REQUESTED'; }).length;
-        return '<a href="#/lot/' + l.id + '"><div class="ill">' + ill(l.ill) + '</div><div><b>' + esc(l.title) + '</b><span class="s">' + l.groups.map(function (g) { return g.cond + ' ' + g.qty; }).join(' · ') + ' · ' + avail(l) + '개 남음</span>' + mini(l.state) + '</div><div class="r">' + pill(l.state) + (waiting ? '<span class="turn me">신청 ' + waiting + '건 · 선정 필요</span>' : '') + '</div></a>';
-      }).join('') + '</div>' : '<div class="card empty"><b>' + cur[1] + ' 물품이 없어요</b>' + (cur[0] === 'DRAFT' ? '<a class="btn pri" href="#/new" style="margin-top:12px">물품 올리기</a>' : '') + '</div>') +
-      '<div class="card" style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div style="flex:1;min-width:220px"><b>에듀파인 대장에서 고르기</b><p class="mut" style="font-size:13px">가져온 자산 행을 골라 바로 초안을 만듭니다. (예전 「대장 가져오기」 메뉴)</p></div><a class="btn" href="#/new" data-act="entry-ledger">대장에서 고르기</a></div>';
+  // ── 우리 기관 보드: 단계별 칸(2번) ──
+  var COLS = [['prep', '작성·검토'], ['pub', '나눔 중'], ['req', '신청·배정'], ['move', '인계·인수'], ['done', '끝남']];
+  function boardItems() {
+    var u = me(), mine = myOrg(), items = [];
+    S.lots.filter(function (l) { return l.org === mine; }).forEach(function (l) {
+      var col = l.state === 'DRAFT' || l.state === 'REVIEW' ? 'prep' : l.state === 'PUBLISHED' ? 'pub' : 'done';
+      var turn = l.state === 'REVIEW' && u.role === 'REVIEWER' && l.by !== u.id ? '검토해 주세요' : l.state === 'DRAFT' && u.role !== 'REVIEWER' ? '마저 써 주세요' : '';
+      var wait = dealsOf(l).filter(function (t) { return t.state === 'REQUESTED'; }).length;
+      items.push({ col: col, href: '#/lot/' + l.id, ill: l.ill, title: l.title, sub: l.state === 'PUBLISHED' ? avail(l) + '개 남음 · ' + ago(l.days) + ' 올림' + (wait ? ' · 신청 ' + wait : '') : (PILL[l.state] || [''])[0] + ' · ' + l.groups.map(function (g) { return g.cond.replace(' 있음', '') + ' ' + g.qty; }).join(' · '), turn: turn, soft: l.state === 'DRAFT', dir: 'lot', state: l.state });
+    });
+    myDeals().forEach(function (t) {
+      var l = lot(t.lot), out = t.from === mine, col = { REQUESTED: 'req', RESERVED: 'req', SENT: 'move', RECEIVED: 'move', DISPUTED: 'move' }[t.state] || 'done';
+      items.push({ col: col, href: '#/deal/' + t.id, ill: l.ill, title: short(l.title) + (out ? ' → ' : ' ← ') + org(out ? t.to : t.from).short, sub: t.cond.replace(' 있음', '') + ' ' + t.qty + '개 · ' + t.date, turn: myTurn(t), wait: theirTurn(t), stop: t.state === 'DISPUTED', dir: out ? 'out' : 'in', state: t.state, faded: t.state === 'DECLINED' || t.state === 'CANCELLED' });
+    });
+    return items;
+  }
+  function vBoard() {
+    var all = boardItems(), f = ui.boardF;
+    var hard = function (x) { return x.turn && !x.soft; };
+    var shown = all.filter(function (x) { return f === 'all' || (f === 'me' ? hard(x) : x.dir === f); });
+    var turnN = all.filter(hard).length;
+    var given = S.transfers.filter(function (t) { return t.from === myOrg() && t.state === 'DONE'; }).reduce(function (s, t) { return s + t.qty; }, 0);
+    var card = function (x) {
+      return '<a class="bcard' + (x.turn ? (x.soft ? ' soft' : ' me') : '') + (x.stop ? ' stop' : '') + (x.faded ? ' faded' : '') + '" href="' + x.href + '"><span class="th">' + ill(x.ill) + '</span><span class="tx"><b>' + esc(x.title) + '</b><span>' + esc(x.sub) + '</span></span>' +
+        (x.turn ? '<span class="turn">' + (x.soft ? '' : '내 차례 · ') + esc(x.turn) + '</span>' : x.wait ? '<span class="turn them">' + esc(x.wait) + '</span>' : x.faded ? '<span class="turn them">' + (PILL[x.state] || [''])[0] + '</span>' : '') + '</a>';
+    };
+    var mcol = ui.boardCol;
+    var mobileList = mcol === 'me' ? all.filter(hard) : all.filter(function (x) { return x.col === mcol; });
+    return '<div class="board-bar"><h1 class="h1">우리 기관 보드</h1><div class="chips" role="group" aria-label="걸러 보기">' +
+      [['all', '전체'], ['me', '내 차례만 ' + turnN], ['out', '보내는 것'], ['in', '받는 것']].map(function (o) { return '<button class="chip line ' + (f === o[0] ? 'on' : '') + '" data-act="bf" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') +
+      '</div><span class="sp"></span><a class="btn sm" href="#/new" data-act="entry-ledger">대장에서 고르기</a></div>' +
+      '<div class="kpi"><div><span>내 차례</span><b class="' + (turnN ? 'hot' : '') + '">' + turnN + '</b></div><div><span>나눔 중</span><b>' + all.filter(function (x) { return x.col === 'pub'; }).length + '</b></div><div><span>이번 달 이어 준 수량</span><b>' + given + '개</b></div><div><span>멈춤</span><b class="' + (all.some(function (x) { return x.stop; }) ? 'red' : '') + '">' + all.filter(function (x) { return x.stop; }).length + '</b></div></div>' +
+      '<div class="board">' + COLS.map(function (c) { var xs = shown.filter(function (x) { return x.col === c[0]; }); return '<section class="col"><h2>' + c[1] + '<em>' + xs.length + '</em></h2>' + (xs.length ? xs.map(card).join('') : '<p class="col-empty">없어요</p>') + '</section>'; }).join('') + '</div>' +
+      '<div class="board-m"><div class="chips" role="tablist" aria-label="단계">' + [['me', '내 차례 ' + turnN]].concat(COLS).map(function (c) { return '<button role="tab" aria-selected="' + (mcol === c[0]) + '" class="chip ' + (mcol === c[0] ? 'on' : '') + '" data-act="bcol" data-v="' + c[0] + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      (mobileList.length ? mobileList.map(card).join('') : '<div class="card empty"><b>' + (mcol === 'me' ? '지금 내 차례인 일이 없어요' : '이 단계에 있는 건이 없어요') + '</b>' + (mcol === 'me' ? '홈에서 새로 나온 물건을 둘러보세요.' : '') + '</div>') + '</div>';
   }
 
-  // ── 주고받기 ──
-  function vDeals() {
-    var all = myDeals(), mine = myOrg();
-    var tabs = [['in', '받을 물건', function (t) { return t.to === mine && !end(t); }], ['out', '보낼 물건', function (t) { return t.from === mine && !end(t); }], ['end', '끝남', end]];
-    function end(t) { return ['DONE', 'DECLINED', 'CANCELLED'].indexOf(t.state) >= 0; }
-    var cur = tabs.filter(function (t) { return t[0] === ui.dealTab; })[0] || tabs[0];
-    var list = all.filter(cur[2]);
-    return '<div><h1 class="h1">주고받기</h1><p class="sub">신청부터 인계·인수·대장 반영까지. 내 차례인 건은 빨간 글자로 표시합니다.</p></div>' +
-      '<div class="tabs" role="tablist">' + tabs.map(function (t) { var n = all.filter(t[2]).length, m = all.filter(t[2]).filter(myTurn).length; return '<button role="tab" aria-selected="' + (t === cur) + '" class="' + (t === cur ? 'on' : '') + '" data-act="dtab" data-v="' + t[0] + '">' + t[1] + '<small>' + n + '</small>' + (m ? ' <span class="ct" style="display:inline-block">' + m + '</span>' : '') + '</button>'; }).join('') + '</div>' +
-      (list.length ? '<div class="card rowlist" style="padding:0">' + list.map(function (t) {
-        var l = lot(t.lot), other = t.from === mine ? t.to : t.from, mt = myTurn(t), tt = theirTurn(t);
-        return '<a href="#/deal/' + t.id + '"><div class="ill">' + ill(l.ill) + '</div><div><b>' + esc(l.title) + ' · ' + t.cond + ' ' + t.qty + '개</b><span class="s">' + (t.from === mine ? '보냄 → ' : '받음 ← ') + esc(org(other).short) + ' · ' + esc(t.date) + '</span>' + mini(t.state) + '</div><div class="r">' + pill(t.state) + (mt ? '<span class="turn me">내 차례 · ' + mt + '</span>' : tt ? '<span class="turn them">' + tt + '</span>' : '') + '</div></a>';
-      }).join('') + '</div>' : '<div class="card empty"><b>' + cur[1] + '이 없어요</b>' + (cur[0] === 'in' ? '<a class="btn pri" href="#/market" style="margin-top:12px">물품 찾기</a>' : '') + '</div>');
-  }
   function vDeal(id) {
     var t = deal(id); if (!t) return notFound();
     var l = lot(t.lot), mine = myOrg(), sender = t.from === mine, mt = myTurn(t);
@@ -267,7 +281,7 @@
       : '<div class="help"><b>받은 다음 우리 기관이 할 일</b><ol><li>물품이음에서 받은 수량 확인</li><li>에듀파인에서 관리전환 취득 등록</li><li>「대장 반영 확인」</li></ol><span class="mut">메뉴 위치와 서식은 오른쪽 위 「?」 도움 칸에서 근거와 함께 확인하세요.</span></div>';
     var evs = t.events.map(function (e) { return '<div class="ev' + (/불일치/.test(e.what) ? ' x' : '') + '"><i></i><div><b>' + esc(e.what) + '</b><span>' + esc(e.who) + (e.note ? ' · "' + esc(e.note) + '"' : '') + '</span></div><span class="mut" style="font-size:12px">' + esc(e.t) + '</span></div>'; }).join('');
     if (next && t.state !== 'DONE') evs += '<div class="ev now"><i></i><div><b>' + next + ' 기다리는 중</b><span>' + (mt ? '우리 차례' : '상대 기관 차례') + '</span></div>' + (mt ? '<span class="pill p-red">내 차례</span>' : '<span class="pill p-amber">상대 차례</span>') + '</div>';
-    return '<div><a class="mut row" href="#/deals" style="gap:4px;font-size:14px">' + icon('back') + '주고받기</a></div>' +
+    return '<div><a class="mut row" href="#/board" style="gap:4px;font-size:14px">' + icon('back') + '우리 기관 보드</a></div>' +
       '<div class="between"><div class="row"><h1 class="h1">' + esc(l.title) + ' ' + t.qty + '개</h1>' + pill(t.state) + '</div><a class="btn sm" href="#/lot/' + l.id + '">물품 보기</a></div>' +
       '<section class="card parties"><div class="p"><small>보내는 기관' + (sender ? ' (우리)' : '') + '</small><b>' + esc(org(t.from).name) + '</b></div><span class="arrow" aria-hidden="true">→</span><div class="p"><small>받는 기관' + (!sender ? ' (우리)' : '') + '</small><b>' + esc(org(t.to).name) + '</b><div class="mut" style="font-size:13px">' + t.cond + ' ' + t.qty + '개 · ' + esc(t.date) + '</div></div></section>' +
       '<section class="card">' + stepper(t.state) + '</section>' +
@@ -353,14 +367,14 @@
 
   // ── 시연 안내 ──
   var TOUR = [
-    { t: '시작하기', d: '가상 기관 「새빛초」의 물품 담당자 김새빛으로 들어갑니다. 시연 데이터도 처음 상태로 맞춥니다.', go: function () { S = fresh(); S.me = 'u1'; save(); ui.draft = null; ui.step = 0; go('#/home'); } },
-    { t: '홈: 오늘 할 일', d: '들어오자마자 내가 해야 할 일만 보입니다. 주황은 마저 할 일, 파랑은 주고받기 내 차례, 빨강은 멈춘 건입니다. 아래에는 우리 물품마다 7칸 진행 막대가 붙어 있습니다.', go: function () { go('#/home'); } },
-    { t: '주고받기: 내 차례', d: '한결도서관이 우리 마이크 1개를 신청했습니다. 오른쪽 「1개 예비 배정」을 눌러 보세요. 진행 막대와 기록이 함께 바뀝니다.', go: function () { go('#/deal/T2'); } },
-    { t: '물품 찾기', d: '카드에서 증빙 확인, 상태별 수량, 기관·자치구·거리를 보고 판단합니다. 「가까운 순」 정렬과 「양호만」 걸러 보기를 눌러 보세요.', go: function () { go('#/market'); } },
-    { t: '물품 상세와 신청', d: '상태를 큰 버튼으로 고르고 수량을 정하면 예상 배송비가 바로 나옵니다. 「받기 신청」을 누르면 주고받기 한 건이 생깁니다.', go: function () { go('#/lot/L1'); } },
-    { t: '물품 올리기', d: '사진·에듀파인 엑셀·대장, 어느 입구로 들어와도 같은 다섯 단계입니다. 2단계의 AI 제안은 「넣기」를 눌러야 들어갑니다. 끝까지 가서 「검토 요청」을 눌러 보세요.', go: function () { ui.draft = null; ui.step = 0; go('#/new'); } },
-    { t: '검토자가 게시하기', d: '업무 검토자 박검토로 바꿨습니다. 홈의 「검토해 주세요」를 눌러 확인 3가지를 체크하고 게시합니다. 작성자는 스스로 게시할 수 없습니다.', go: function () { S.me = 'u2'; save(); go('#/home'); } },
-    { t: '끝까지 간 한 건', d: '푸른고와 주고받은 의자 10개입니다. 신청부터 대장 반영까지 7단계가 모두 채워졌고, 누가 언제 무엇을 했는지 기록이 남습니다.', go: function () { S.me = 'u1'; save(); go('#/deal/T3'); } }
+    { t: '시작하기', d: '가상 학교 「새빛초」의 물품 담당자 김새빛 선생님으로 들어가요. 시연 데이터도 처음 상태로 맞춰요.', go: function () { S = fresh(); S.me = 'u1'; save(); ui.draft = null; ui.step = 0; ui.boardF = 'all'; ui.boardCol = 'me'; go('#/home'); } },
+    { t: '홈: 오늘 할 일', d: '들어오자마자 「오늘은 1가지만 하면 돼요」처럼 말을 걸어요. 버튼을 누르면 그 일로 바로 가요. 아래에는 가까운 학교에 새로 나온 물건이 사진으로 펼쳐져요.', go: function () { go('#/home'); } },
+    { t: '내 차례 처리하기', d: '한결도서관이 우리 마이크 1개를 신청했어요. 「1개 예비 배정」을 눌러 보세요. 진행 막대와 기록이 함께 바뀌어요.', go: function () { go('#/deal/T2'); } },
+    { t: '물품 찾기', d: '사진이 먼저 보여요. 거리와 남은 수량이 사진 위에, 증빙 확인과 상태별 수량은 아래에 있어요. 「가까운 순」과 「양호만」을 눌러 보세요.', go: function () { go('#/market'); } },
+    { t: '물건 받기 신청', d: '상태를 큰 버튼으로 고르고 수량을 정하면 예상 배송비가 바로 나와요. 「받기 신청」을 누르면 보드에 한 건이 생겨요.', go: function () { go('#/lot/L1'); } },
+    { t: '물건 올리기', d: '사진·에듀파인 엑셀·대장, 어느 입구로 들어와도 같은 다섯 단계예요. AI 제안은 「넣기」를 눌러야 들어가요. 끝까지 가서 「검토 요청」을 눌러 보세요.', go: function () { ui.draft = null; ui.step = 0; go('#/new'); } },
+    { t: '검토자가 게시하기', d: '업무 검토자 박검토 선생님으로 바꿨어요. 홈의 「검토하기」를 눌러 확인 3가지를 체크하고 게시해요. 작성자는 스스로 게시할 수 없어요.', go: function () { S.me = 'u2'; save(); go('#/home'); } },
+    { t: '우리 기관 보드', d: '우리 기관 물건과 주고받기를 단계별 칸에 한눈에 펼쳐요. 내 차례인 카드는 주황 띠로 보여요. 「내 차례만」을 누르면 할 일만 남아요.', go: function () { S.me = 'u1'; save(); ui.boardF = 'all'; ui.boardCol = 'me'; go('#/board'); } }
   ];
   function tourPanel() {
     var T = ui.tour, st = TOUR[T.i];
@@ -379,7 +393,7 @@
     if (!S.me || !me()) { app.innerHTML = vLogin() + tourPanel(); document.title = '물품이음 시안'; return; }
     var html, opts = {};
     if (r === 'lot') { var v = vLot(id); html = v.html || v; if (v.sticky) { opts.sticky = true; opts.stickyHtml = v.sticky; } }
-    else html = r === 'market' ? vMarket() : r === 'mine' ? vMine() : r === 'deals' ? vDeals() : r === 'deal' ? vDeal(id) : r === 'new' ? vNew() : r === 'more' ? vMore() : (r = 'home', vHome());
+    else html = r === 'market' ? vMarket() : r === 'board' || r === 'mine' || r === 'deals' ? (r = 'board', vBoard()) : r === 'deal' ? vDeal(id) : r === 'new' ? vNew() : r === 'more' ? vMore() : (r = 'home', vHome());
     var focusId = document.activeElement && document.activeElement.id;
     app.innerHTML = shell(r, html, opts) + tourPanel();
     document.title = (CRUMB[r] || '물품이음') + ' · 물품이음 시안';
@@ -402,9 +416,9 @@
     var a = b.dataset.act, id = b.dataset.id, u = S.me && me();
     function ev(t, what, note) { t.events.push({ t: now(), who: org(myOrg()).short + ' ' + u.name, what: what, note: note }); }
     switch (a) {
-      case 'login': S.me = id; save(); toast(me().name + ' 계정으로 들어왔습니다'); go('#/home'); render(); break;
+      case 'login': S.me = id; save(); toast(me().name + ' 선생님으로 들어왔어요'); go('#/home'); render(); break;
       case 'logout': S.me = null; save(); go('#/home'); render(); break;
-      case 'reset': var who = S.me; S = fresh(); S.me = who; save(); ui.draft = null; ui.step = 0; toast('시연 데이터를 처음으로 되돌렸습니다'); render(); break;
+      case 'reset': var who = S.me; S = fresh(); S.me = who; save(); ui.draft = null; ui.step = 0; toast('시연 데이터를 처음으로 되돌렸어요'); render(); break;
       case 'help': e.preventDefault(); ui.help = !ui.help; render(); break;
       case 'tour-toggle': ui.tour.open = !ui.tour.open; render(); break;
       case 'tour-go': ui.tour.i = +b.dataset.i; TOUR[ui.tour.i].go(); render(); window.scrollTo(0, 0); break;
@@ -412,7 +426,7 @@
       case 'tour-prev': ui.tour.i = Math.max(0, ui.tour.i - 1); TOUR[ui.tour.i].go(); render(); window.scrollTo(0, 0); break;
       case 'cat': ui.cat = b.dataset.v; render(); break;
       case 'toggle': ui[b.dataset.k] = !ui[b.dataset.k]; render(); break;
-      case 'fav': e.preventDefault(); var i = S.fav.indexOf(id); if (i >= 0) S.fav.splice(i, 1); else S.fav.push(id); save(); toast(i >= 0 ? '관심물품에서 뺐습니다' : '관심물품에 담았습니다'); render(); break;
+      case 'fav': e.preventDefault(); var i = S.fav.indexOf(id); if (i >= 0) S.fav.splice(i, 1); else S.fav.push(id); save(); toast(i >= 0 ? '관심물품에서 뺐어요' : '관심물품에 담았어요'); render(); break;
       case 'cond': ui.cond[id] = +b.dataset.i; ui.qty[id] = 1; render(); break;
       case 'qty': var l0 = lot(id), gs = l0.groups.filter(function (g) { return !/비공개/.test(g.cond); }), gi = ui.cond[id] != null ? ui.cond[id] : Math.max(0, gs.findIndex(function (g) { return g.avail > 0; })); ui.qty[id] = Math.min(gs[gi].avail, Math.max(1, (ui.qty[id] || 1) + (+b.dataset.d))); render(); break;
       case 'request':
@@ -420,32 +434,32 @@
         if (!g || !g.avail) { toast('신청할 수 있는 수량이 없습니다'); break; }
         var purpose = ($('#purpose') || {}).value || '교실 사용', date = ($('#pdate') || {}).value || '협의';
         g.avail -= n; var T = { id: 'T' + (++S.seq), lot: id, from: L.org, to: myOrg(), cond: g.cond, qty: n, purpose: purpose, date: date, state: 'REQUESTED', events: [] };
-        ev(T, '신청 · ' + g.cond + ' ' + n + '개', purpose); S.transfers.unshift(T); save(); toast(n + '개 받기 신청을 보냈습니다'); go('#/deal/' + T.id); break;
-      case 'reserve': var t1 = deal(id); t1.state = 'RESERVED'; ev(t1, '예비 배정 · ' + t1.qty + '개'); save(); toast('예비 배정했습니다. 다음은 인계 기록입니다'); render(); break;
-      case 'decline': var t2 = deal(id); t2.state = 'DECLINED'; restore(t2); ev(t2, '선정하지 않음'); save(); toast('선정하지 않았습니다. 수량을 되돌렸습니다'); render(); break;
-      case 'cancel': var t3 = deal(id); t3.state = 'CANCELLED'; restore(t3); ev(t3, '신청 취소'); save(); toast('신청을 취소했습니다'); render(); break;
-      case 'send': if (!$('#photo-ok').checked) { toast('인계 사진 첨부를 확인해 주세요'); break; } var t4 = deal(id); t4.state = 'SENT'; ev(t4, '인계 기록 · ' + t4.qty + '개 · 사진 1장'); save(); toast('인계를 기록했습니다. 상대 기관이 인수 확인할 차례입니다'); render(); break;
-      case 'receive': var t5 = deal(id), got = Math.max(0, +$('#rq').value || 0); if (got === t5.qty) { t5.state = 'RECEIVED'; ev(t5, '인수 확인 · ' + got + '개'); toast('받은 수량을 확인했습니다'); } else { t5.state = 'DISPUTED'; ev(t5, '수량 불일치 · 보냄 ' + t5.qty + ' / 받음 ' + got); toast('수량이 달라 진행을 멈췄습니다'); } save(); render(); break;
-      case 'resolve': var t6 = deal(id); t6.state = 'RECEIVED'; ev(t6, '실제 전량 수령 확인'); save(); toast('정상 인수로 바꿨습니다'); render(); break;
-      case 'done': if (!$('#ledger-ok').checked) { toast('에듀파인 처리 여부를 확인해 주세요'); break; } var t7 = deal(id); t7.state = 'DONE'; ev(t7, '대장 반영 확인'); save(); toast('완료했습니다'); render(); break;
-      case 'submit-review': lot(id).state = 'REVIEW'; save(); toast('검토를 요청했습니다'); render(); break;
-      case 'approve': if ($$('.rv').some(function (c) { return !c.checked; })) { toast('확인 항목 3가지를 모두 체크해 주세요'); break; } var L2 = lot(id); L2.state = 'PUBLISHED'; L2.verified = true; L2.days = 0; save(); toast('게시했습니다. 이제 다른 기관이 찾을 수 있습니다'); render(); break;
-      case 'reject': lot(id).state = 'DRAFT'; save(); toast('작성자에게 수정을 요청했습니다'); render(); break;
-      case 'pause': lot(id).state = 'PAUSED'; save(); toast('게시를 중단했습니다'); render(); break;
-      case 'resume': lot(id).state = 'PUBLISHED'; save(); toast('다시 게시했습니다'); render(); break;
-      case 'mtab': ui.mineTab = b.dataset.v; render(); break;
-      case 'dtab': ui.dealTab = b.dataset.v; render(); break;
+        ev(T, '신청 · ' + g.cond + ' ' + n + '개', purpose); S.transfers.unshift(T); save(); toast(n + '개 받기 신청을 보냈어요'); go('#/deal/' + T.id); break;
+      case 'reserve': var t1 = deal(id); t1.state = 'RESERVED'; ev(t1, '예비 배정 · ' + t1.qty + '개'); save(); toast('예비 배정했어요. 다음은 인계 기록이에요'); render(); break;
+      case 'decline': var t2 = deal(id); t2.state = 'DECLINED'; restore(t2); ev(t2, '선정하지 않음'); save(); toast('선정하지 않았어요. 수량은 되돌려 놓았어요'); render(); break;
+      case 'cancel': var t3 = deal(id); t3.state = 'CANCELLED'; restore(t3); ev(t3, '신청 취소'); save(); toast('신청을 취소했어요'); render(); break;
+      case 'send': if (!$('#photo-ok').checked) { toast('인계 사진 첨부를 확인해 주세요'); break; } var t4 = deal(id); t4.state = 'SENT'; ev(t4, '인계 기록 · ' + t4.qty + '개 · 사진 1장'); save(); toast('인계를 기록했어요. 이제 상대 기관이 받은 수량을 확인할 차례예요'); render(); break;
+      case 'receive': var t5 = deal(id), got = Math.max(0, +$('#rq').value || 0); if (got === t5.qty) { t5.state = 'RECEIVED'; ev(t5, '인수 확인 · ' + got + '개'); toast('받은 수량을 확인했어요'); } else { t5.state = 'DISPUTED'; ev(t5, '수량 불일치 · 보냄 ' + t5.qty + ' / 받음 ' + got); toast('수량이 달라서 잠시 멈췄어요'); } save(); render(); break;
+      case 'resolve': var t6 = deal(id); t6.state = 'RECEIVED'; ev(t6, '실제 전량 수령 확인'); save(); toast('정상 인수로 바꿨어요'); render(); break;
+      case 'done': if (!$('#ledger-ok').checked) { toast('에듀파인 처리 여부를 확인해 주세요'); break; } var t7 = deal(id); t7.state = 'DONE'; ev(t7, '대장 반영 확인'); save(); toast('끝까지 마쳤어요. 수고하셨어요'); render(); break;
+      case 'submit-review': lot(id).state = 'REVIEW'; save(); toast('검토를 요청했어요'); render(); break;
+      case 'approve': if ($$('.rv').some(function (c) { return !c.checked; })) { toast('확인 항목 3가지를 모두 체크해 주세요'); break; } var L2 = lot(id); L2.state = 'PUBLISHED'; L2.verified = true; L2.days = 0; save(); toast('게시했어요. 이제 다른 학교에서 찾을 수 있어요'); render(); break;
+      case 'reject': lot(id).state = 'DRAFT'; save(); toast('작성자에게 수정을 요청했어요'); render(); break;
+      case 'pause': lot(id).state = 'PAUSED'; save(); toast('게시를 멈췄어요'); render(); break;
+      case 'resume': lot(id).state = 'PUBLISHED'; save(); toast('다시 게시했어요'); render(); break;
+      case 'bf': ui.boardF = b.dataset.v; render(); break;
+      case 'bcol': ui.boardCol = b.dataset.v; render(); break;
       case 'entry-ledger': ui.draft = newDraft('ledger'); ui.step = 0; break;
       case 'entry': readWizard(); ui.draft.entry = b.dataset.v; render(); break;
       case 'pick': ui.draft.ill = b.dataset.v; render(); break;
-      case 'ai': readWizard(); ui.draft.title = '교실 빔프로젝터'; ui.draft.model = 'EB-X41'; ui.draft.cat = 'ELECTRONICS'; toast('AI 제안을 넣었습니다. 맞는지 확인해 주세요'); render(); break;
+      case 'ai': readWizard(); ui.draft.title = '교실 빔프로젝터'; ui.draft.model = 'EB-X41'; ui.draft.cat = 'ELECTRONICS'; toast('AI 제안을 넣었어요. 맞는지 한 번 봐 주세요'); render(); break;
       case 'wstep': readWizard(); draftFromLedger(ui.draft); ui.step = +b.dataset.i; render(); break;
       case 'wnext': readWizard(); if (ui.step === 0 && ui.draft.entry !== 'photo' && !ui.draft.ledger.length) { toast('가져올 행을 하나 이상 골라 주세요'); break; } draftFromLedger(ui.draft); ui.step = Math.min(4, ui.step + 1); render(); window.scrollTo(0, 0); break;
       case 'wprev': readWizard(); ui.step = Math.max(0, ui.step - 1); render(); break;
       case 'save-draft': case 'finish':
         var d = ui.draft, groups = Object.keys(d.q).filter(function (k) { return d.q[k] > 0; }).map(function (k) { return { cond: k, qty: +d.q[k], avail: +d.q[k] }; });
         var nl = { id: 'L' + (++S.seq), title: d.title || '이름 없는 물품', cat: d.cat, org: myOrg(), ill: d.ill, state: a === 'finish' ? 'REVIEW' : 'DRAFT', days: 0, verified: false, maker: d.maker, model: d.model, desc: d.desc || '설명 없음', groups: groups.length ? groups : [{ cond: '양호', qty: 1, avail: 1 }], by: u.id };
-        S.lots.unshift(nl); save(); ui.draft = null; ui.step = 0; ui.mineTab = nl.state; toast(a === 'finish' ? '검토를 요청했습니다' : '초안으로 저장했습니다'); go('#/lot/' + nl.id); break;
+        S.lots.unshift(nl); save(); ui.draft = null; ui.step = 0; ui.mineTab = nl.state; toast(a === 'finish' ? '검토를 요청했어요' : '초안으로 저장했어요'); go('#/lot/' + nl.id); break;
     }
   });
   function restore(t) { var l = lot(t.lot); l.groups.forEach(function (g) { if (g.cond === t.cond) g.avail += t.qty; }); }
