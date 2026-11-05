@@ -64,6 +64,17 @@ section{display:flex;flex-direction:column;gap:16px}
 .honest{background:var(--ink);color:#fff;border-radius:22px;padding:22px 24px;display:flex;flex-direction:column;gap:8px}
 .honest b{color:var(--sun)}
 .honest p{color:#dfe5e2;font-size:15.5px}
+.ba{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media(max-width:760px){.ba{grid-template-columns:minmax(0,1fr)}}
+.ba figure{margin:0;background:var(--paper);border:1px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.ba figcaption{font-size:14.5px;color:var(--ink-2)}
+.ba figcaption span{display:inline-block;font-weight:900;font-size:12.5px;border-radius:6px;padding:1px 8px;margin-right:6px}
+.b0{background:#eef0ef;color:var(--muted)}.b1{background:var(--mint);color:var(--brand)}
+.ba img{width:100%;height:auto;border-radius:10px;border:1px solid var(--line);display:block}
+.dev{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.dev summary{font-weight:800;cursor:pointer}
+.dev ul{margin:10px 0 0;padding-left:18px;font-size:14.5px;color:var(--ink-2);display:grid;gap:4px}
+.dev code{font-size:13px;background:#f1f3f2;border-radius:4px;padding:0 4px}
 :focus-visible{outline:3px solid var(--brand);outline-offset:2px}
 </style>
 </head>
@@ -73,8 +84,8 @@ section{display:flex;flex-direction:column;gap:16px}
   <section>
     <span class="tag">초안 · 의견 받으려고 만든 페이지예요</span>
     <h1>물품이음, <em>사진 한 장</em>이<br>나눔을 시작하게 해요</h1>
-    <p class="lead">디자인 시안을 3분 안에 볼 수 있게 줄였어요. 완성본이 아니라 방향을 맞추려는 초안이에요. 편하게 고칠 점을 알려 주세요.</p>
-    <div class="btns"><a href="index.html">시안 직접 눌러 보기</a><a class="l2" href="#ask">의견 주실 것만 보기</a></div>
+    <p class="lead">이 페이지 하나만 보면 돼요. 디자인 방향과 실제 사이트에 입혀 본 모습을 3분 안에 볼 수 있게 줄였어요. 완성본이 아니라 방향을 맞추려는 초안이에요. 편하게 고칠 점을 알려 주세요.</p>
+    <div class="btns"><a href="#real">실제 사이트에 입힌 모습</a><a class="l2" href="#ask">의견 주실 것만 보기</a></div>
   </section>
 
   <section>
@@ -147,14 +158,32 @@ section{display:flex;flex-direction:column;gap:16px}
     <p class="muted">서버 규칙(작성자는 스스로 게시 못 함, 수량 다르면 멈춤 등)은 하나도 바꾸지 않았어요. 화면만 바꾼 시안이에요.</p>
   </section>
 
+  <section id="real">
+    <span class="eyebrow">04 · 실제 사이트 코드에 입혀 본 모습</span>
+    <h2>지금 사이트(v0.9)에 <em>1단계</em>를 입혀 봤어요</h2>
+    <p>실제 사이트를 바꾼 게 아니라, 코드를 복사해서 제 저장소에서만 입혀 본 거예요. 팀에서 괜찮다고 하면 반영하면 돼요.</p>
+    <div class="ba">
+      <figure><figcaption><span class="b0">지금</span> 로그인하면 물품 목록 · 화면 높이가 낮으면 메뉴 아래쪽(온비드·배송비·개선사항·설정)이 잘려요</figcaption><img src="shots/real-before.webp" alt="지금 사이트: 로그인하면 물품 찾기 화면, 왼쪽 메뉴가 한 줄로 길게 나열되어 아래가 잘림" width="1440" height="900" loading="lazy"></figure>
+      <figure><figcaption><span class="b1">바꾼 뒤</span> 로그인하면 「오늘 할 일」 · 메뉴는 3묶음으로 한 화면에</figcaption><img src="shots/real-after.webp" alt="바꾼 뒤: 오늘 할 일 화면, 작성·내 차례·멈춤 건수와 진행 막대, 이웃 기관 새 물품" width="1440" height="900" loading="lazy"></figure>
+    </div>
+    <p class="muted">팀원이 만든 엑셀·OZD 올리기, 조달청 보완, AI 대화창은 그대로예요. 서버 규칙·DB도 그대로예요.</p>
+    <details class="dev"><summary>개발·배포 담당자용 (펼치기)</summary>
+      <ul>
+        <li>기준: <code>codex/v09-nas-completion</code> 7c0a69a</li>
+        <li>변경 내용: <a href="https://github.com/feelover7-ui/trade-redesign/pull/4">feelover7-ui/trade-redesign PR 4</a></li>
+        <li>팀 저장소로 반영 요청: <a href="https://github.com/h19h29-design/trade/compare/codex/v09-nas-completion...feelover7-ui:trade-redesign:design/v09">비교 화면에서 Create pull request</a></li>
+        <li>테스트: npm test 150개·build 통과, e2e v0.7·OZD·RAG 12개 통과. feedback·lifecycle 2개 실패는 수정 전 v0.9에서도 같음(헤드리스 브라우저가 한글 다운로드 파일명을 download로 받음)</li>
+      </ul>
+    </details>
+  </section>
+
   <section id="ask">
-    <span class="eyebrow">04 · 의견 주실 것</span>
+    <span class="eyebrow">05 · 의견 주실 것</span>
     <h2>이것만 <em>알려 주세요</em></h2>
     <ol class="qs">
       <li>사진 먼저 보여 주는 방향, 실제 담당자에게 맞을까요?</li>
       <li>화면 3개 중 「이건 현실과 다르다」 싶은 곳이 있나요?</li>
-      <li>대회 시연은 실제 사이트로 하나요, 시안으로 하나요?</li>
-      <li>디자인을 실제 앱에 넣는다면 언제, 누가 반영하면 좋을까요?</li>
+      <li>위 「바꾼 뒤」 화면, 실제 사이트에 반영해도 괜찮을까요? (시연이 실제 사이트라 11/11 전에 들어가면 좋아요)</li>
     </ol>
     <div class="honest">
       <b>솔직하게 미리 말씀드리면</b>
