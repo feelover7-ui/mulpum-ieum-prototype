@@ -3,7 +3,7 @@
   var KEY = 'mulpum-prototype-v1';
   var SEED = window.SEED, ILL = window.ILL;
   var S = load();
-  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0, tour: { open: true, i: 0 }, boardF: 'all', boardCol: 'me' };
+  var ui = { q: '', cat: '', sort: 'near', goodOnly: false, many: false, favOnly: false, mineTab: 'DRAFT', dealTab: 'in', help: false, cond: {}, qty: {}, draft: null, step: 0, tour: { open: !/[?&]embed=1/.test(location.search), i: 0 }, boardF: 'all', boardCol: 'me' };
 
   // ── 저장 ──
   function fresh() { var s = JSON.parse(JSON.stringify(SEED)); s.me = null; s.fav = ['L3']; s.seq = 100; return s; }
