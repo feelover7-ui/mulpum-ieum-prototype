@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>물품이음 디자인 초안</title>
+<meta name="description" content="팀 공유용 요약: 왜 사진 먼저인지, 화면 3개, 의견 받고 싶은 것">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<style>
+:root{--bg:#f5f6f5;--paper:#fff;--ink:#111a16;--ink-2:#36423c;--muted:#68726d;--line:#e3e7e5;--brand:#0f7a5f;--mint:#e3f6ee;--sun:#ffcf4d;--hot:#ff5a36;--font:'Pretendard Variable',Pretendard,'Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16.5px/1.7 var(--font);word-break:keep-all;overflow-wrap:anywhere;-webkit-font-smoothing:antialiased}
+a{color:var(--brand)}
+.wrap{max-width:960px;margin:0 auto;padding:40px 16px 80px;display:flex;flex-direction:column;gap:64px}
+h1,h2,h3,p{margin:0}
+h1{font-size:clamp(30px,5.5vw,46px);font-weight:900;letter-spacing:-.04em;line-height:1.22;text-wrap:balance}
+h2{font-size:clamp(24px,4vw,30px);font-weight:900;letter-spacing:-.03em;line-height:1.3;text-wrap:balance}
+h1 em,h2 em{font-style:normal;background:linear-gradient(transparent 62%,var(--sun) 62%)}
+h3{font-size:19px;font-weight:900}
+section{display:flex;flex-direction:column;gap:16px}
+.eyebrow{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:var(--brand)}
+.tag{align-self:flex-start;background:#fff6e8;color:#9a5205;font-weight:800;font-size:13px;border-radius:999px;padding:4px 12px}
+.lead{font-size:19px;color:var(--ink-2)}
+.muted{color:var(--muted);font-size:14.5px}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+.btns a{background:var(--ink);color:#fff;text-decoration:none;border-radius:999px;padding:11px 18px;font-weight:800;font-size:15px}
+.btns a.l2{background:#fff;color:var(--ink);border:1px solid var(--line)}
+/* 전/후 비교 */
+.vs{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:14px;align-items:stretch}
+@media(max-width:760px){.vs{grid-template-columns:minmax(0,1fr)}}
+.side{background:var(--paper);border:1px solid var(--line);border-radius:22px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.side small{font-weight:800;color:var(--muted);font-size:13px}
+.side h3 span{font-size:14px;font-weight:700;color:var(--muted)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;font-family:'Malgun Gothic',var(--font)}
+.tbl th,.tbl td{border:1px solid #c9ced3;padding:5px 6px;text-align:left}
+.tbl th{background:#e8edf3;font-weight:700}
+.tbl td:nth-child(3),.tbl td:nth-child(4){text-align:right}
+.q{font-size:14.5px;color:var(--ink-2);background:#f3f4f4;border-radius:12px;padding:10px 12px}
+.side.after{border:2px solid var(--brand)}
+.crop{overflow:hidden;aspect-ratio:825/310;border-radius:12px;border:1px solid var(--line)}
+.crop img{display:block;width:145.45%;max-width:none;height:auto;margin-left:-10.3%;margin-top:-30.9%}
+.why{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+@media(max-width:760px){.why{grid-template-columns:minmax(0,1fr)}}
+.why div{background:var(--mint);border-radius:18px;padding:16px 18px}
+.why b{display:block;font-size:17px}
+.why p{font-size:15px;color:var(--ink-2)}
+/* 화면 3개 */
+.screen{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:20px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:24px;padding:18px}
+@media(max-width:760px){.screen{grid-template-columns:minmax(0,1fr)}}
+.screen img{width:100%;height:auto;border-radius:14px;border:1px solid var(--line);display:block}
+.screen .txt{display:flex;flex-direction:column;gap:8px}
+.screen .no{font-weight:900;color:var(--hot);font-size:14px}
+.screen ul{margin:0;padding-left:18px;font-size:15px;color:var(--ink-2);display:grid;gap:4px}
+.ask{font-size:14.5px;font-weight:700;background:#fff6e8;color:#7a4204;border-radius:12px;padding:10px 12px}
+/* 바뀐 점 */
+.chg{display:grid;gap:10px}
+.chg div{display:grid;grid-template-columns:minmax(0,1fr) 28px minmax(0,1fr);gap:8px;align-items:center;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:15.5px}
+.chg .arrow{text-align:center;font-weight:900;color:var(--brand)}
+.chg .before{color:var(--muted)}
+.chg .after{font-weight:800}
+.qs{margin:0;padding-left:22px;display:grid;gap:8px;font-size:16.5px}
+.honest{background:var(--ink);color:#fff;border-radius:22px;padding:22px 24px;display:flex;flex-direction:column;gap:8px}
+.honest b{color:var(--sun)}
+.honest p{color:#dfe5e2;font-size:15.5px}
+:focus-visible{outline:3px solid var(--brand);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section>
+    <span class="tag">초안 · 의견 받으려고 만든 페이지예요</span>
+    <h1>물품이음, <em>사진 한 장</em>이<br>나눔을 시작하게 해요</h1>
+    <p class="lead">디자인 시안을 3분 안에 볼 수 있게 줄였어요. 완성본이 아니라 방향을 맞추려는 초안이에요. 편하게 고칠 점을 알려 주세요.</p>
+    <div class="btns"><a href="index.html">시안 직접 눌러 보기</a><a class="l2" href="#ask">의견 주실 것만 보기</a></div>
+  </section>
+
+  <section>
+    <span class="eyebrow">01 · 왜 사진 먼저인가</span>
+    <h2>글자만 보면 <em>판단</em>하고, 사진을 보면 <em>갖고 싶어져요</em></h2>
+    <div class="vs">
+      <div class="side">
+        <small>지금: 소요조회 목록</small>
+        <h3>표 한 줄 <span>(예시 화면, 실제 에듀파인 화면 아님)</span></h3>
+        <table class="tbl">
+          <thead><tr><th>품명</th><th>규격</th><th>수량</th><th>취득단가</th></tr></thead>
+          <tbody>
+            <tr><td>화이트보드</td><td>1200×900</td><td>6</td><td>180,000</td></tr>
+            <tr><td>서류함</td><td>3단</td><td>15</td><td>95,000</td></tr>
+            <tr><td>모니터</td><td>24인치</td><td>12</td><td>210,000</td></tr>
+            <tr><td>독서대</td><td>원목</td><td>20</td><td>12,000</td></tr>
+          </tbody>
+        </table>
+        <p class="q">받는 학교는 이렇게 생각해요. 「상태가 어떻지? 바퀴는 있나? 직접 가서 봐야 하나?」 → 확인할 게 많아서 <b>그냥 넘겨요.</b></p>
+      </div>
+      <div class="side after">
+        <small>시안: 물품이음</small>
+        <h3>사진 카드</h3>
+        <div class="crop"><img src="shots/pc-market.webp" alt="사진 카드: 이동식 화이트보드 6개 1.8km, 서류함 15개, 모니터 12개, 독서대 20개가 거리·수량·상태와 함께 보임" width="1200" height="750"></div>
+        <p class="q">「어, 우리 3학년 교실에 딱인데?」 → 사진에 <b>상태·수량·거리</b>가 같이 보여서 <b>바로 신청</b>해요.</p>
+      </div>
+    </div>
+    <div class="why">
+      <div><b>당근마켓과 같은 원리</b><p>사람은 글자 목록보다 사진을 보고 「갖고 싶다」를 느껴요. 신청이 늘어야 버려지는 물건이 줄어요.</p></div>
+      <div><b>헛걸음이 줄어요</b><p>사용감, 크기, 부속품을 사진으로 미리 보면 「가 보니 못 쓰겠네」가 줄어요.</p></div>
+      <div><b>공식 절차는 그대로</b><p>불용결정·대장 정리는 에듀파인에서 해요. 물품이음은 그 사이 「찾고 고르는 것」을 쉽게 해요.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">02 · 화면 3개만</span>
+    <h2>이 세 화면이 <em>전부</em>예요</h2>
+
+    <div class="screen">
+      <img src="shots/pc-market.webp" alt="물품 찾기 화면" width="1200" height="750" loading="lazy">
+      <div class="txt"><span class="no">화면 1 · 물품 찾기</span><h3>사진으로 고르기</h3>
+        <ul><li>가까운 학교 물건부터</li><li>사진 위에 거리·수량</li><li>「증빙 확인」 표시로 믿고 신청</li></ul>
+        <p class="ask">질문: 받는 학교가 고를 때 더 필요한 정보가 있을까요?</p></div>
+    </div>
+
+    <div class="screen">
+      <img src="shots/pc-new.webp" alt="물품 올리기 화면: 5단계 중 어떤 물건인가요 단계" width="1200" height="750" loading="lazy">
+      <div class="txt"><span class="no">화면 2 · 물품 올리기</span><h3>질문에 답하듯 5단계</h3>
+        <ul><li>어떻게 올릴까요? → 어떤 물건? → 몇 개? → 불용 증빙 → 검토 요청</li><li>AI가 사진에서 이름을 제안, 「넣기」를 눌러야 반영</li><li>게시 전까지는 우리 학교만 봐요</li></ul>
+        <p class="ask">질문: 담당자가 사진을 찍어 올릴 때, 휴대폰으로 할까요 PC로 할까요?</p></div>
+    </div>
+
+    <div class="screen">
+      <img src="shots/pc-home.webp" alt="홈 화면: 오늘은 1가지만 하면 돼요" width="1200" height="750" loading="lazy">
+      <div class="txt"><span class="no">화면 3 · 홈</span><h3>「오늘은 1가지만 하면 돼요」</h3>
+        <ul><li>들어오면 내 차례인 일부터</li><li>나눔 중·받는 중을 한눈에</li><li>물품 업무를 가끔 하는 담당자도 헤매지 않게</li></ul>
+        <p class="ask">질문: 담당자가 들어오자마자 가장 먼저 알고 싶은 건 뭘까요?</p></div>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">03 · 지금 사이트와 달라진 점</span>
+    <h2>기능은 <em>그대로</em>, 찾는 길만 짧게</h2>
+    <div class="chg">
+      <div><span class="before">메뉴 13개</span><span class="arrow">→</span><span class="after">메뉴 4개 + 「올리기」 버튼</span></div>
+      <div><span class="before">로그인하면 물품 목록</span><span class="arrow">→</span><span class="after">로그인하면 「오늘 할 일」</span></div>
+      <div><span class="before">상태 이름(예비배정·인계대기…)</span><span class="arrow">→</span><span class="after">7단계 진행 막대 + 「지금 누구 차례」</span></div>
+      <div><span class="before">글자 위주 목록</span><span class="arrow">→</span><span class="after">사진 카드</span></div>
+    </div>
+    <p class="muted">서버 규칙(작성자는 스스로 게시 못 함, 수량 다르면 멈춤 등)은 하나도 바꾸지 않았어요. 화면만 바꾼 시안이에요.</p>
+  </section>
+
+  <section id="ask">
+    <span class="eyebrow">04 · 의견 주실 것</span>
+    <h2>이것만 <em>알려 주세요</em></h2>
+    <ol class="qs">
+      <li>사진 먼저 보여 주는 방향, 실제 담당자에게 맞을까요?</li>
+      <li>화면 3개 중 「이건 현실과 다르다」 싶은 곳이 있나요?</li>
+      <li>대회 시연은 실제 사이트로 하나요, 시안으로 하나요?</li>
+      <li>디자인을 실제 앱에 넣는다면 언제, 누가 반영하면 좋을까요?</li>
+    </ol>
+    <div class="honest">
+      <b>솔직하게 미리 말씀드리면</b>
+      <p>업무매뉴얼과 사례집을 읽고 만든 초안이라, 현장과 다른 부분이 있을 수 있어요. 시안 속 그림은 진짜 사진이 들어갈 자리이고, 기관·물건은 모두 가상이에요. 틀린 부분을 짚어 주시면 바로 고칠게요.</p>
+    </div>
+    <div class="btns"><a href="index.html">시안 직접 눌러 보기</a><a class="l2" href="proposal.html">자세한 개선안</a><a class="l2" href="understand.html">물품관리 쉽게 이해하기</a></div>
+  </section>
+
+</div>
+</body>
+</html>

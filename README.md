@@ -7,6 +7,7 @@
 - **시안 열기:** `index.html` (GitHub Pages를 켜면 `https://<계정>.github.io/mulpum-ieum-prototype/`)
 - **시연용 한 파일:** `demo.html` (CSS·JS·로고를 모두 담은 HTML 하나. 내려받아 더블클릭하면 열림. `python3 build-single.py`로 다시 만듦)
 - **디자인 방향 비교:** `directions.html` (같은 화면을 「물건이 주인공 · 업무 보드 · 따뜻한 학교」 세 방향으로)
+- **팀 공유용 요약:** `share.html` (왜 사진 먼저인지, 화면 3개, 의견 받을 것)
 - **처음 보는 사람용 설명서:** `understand.html` (물품관리 용어·흐름·등장인물·규칙)
 - **개선안 문서:** `proposal.html` (진단 · 원칙 · 메뉴 구조 · 진행 표시 · 디자인 기준 · 일정)
 
