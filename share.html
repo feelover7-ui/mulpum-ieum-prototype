@@ -52,6 +52,16 @@ section{display:flex;flex-direction:column;gap:16px}
 .hint{font-size:14px;color:var(--muted)}
 @media(max-width:600px){.stage{padding:0;background:none}.stage .scaler{border:1px solid var(--line)}.stage iframe{width:100%!important;height:75vh!important;transform:none!important}.seg{display:none}}
 .fab{transition:opacity .2s,transform .2s}.fab.hide{opacity:0;transform:translateY(12px);pointer-events:none}
+.phases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(max-width:700px){.phases{grid-template-columns:minmax(0,1fr)}}
+.ph{border-radius:20px;padding:18px 20px;background:var(--paper);border:1px dashed var(--line-2,#cfd6d2);display:flex;flex-direction:column;gap:4px}
+.ph.on{background:var(--mint);border:1px solid #bfe3d4}
+.ph span{font-size:12.5px;font-weight:900;color:var(--muted)}
+.ph.on span{color:var(--brand)}
+.ph b{font-size:18px}
+.ph p{font-size:15px;color:var(--ink-2)}
+.ph small{font-size:13px;color:var(--muted)}
+.note2{font-size:14.5px;color:var(--muted)}
 .add{margin:0;padding:0;list-style:none;display:grid;gap:10px}
 .add li{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px;font-size:15.5px}
 .add b{font-weight:800}
@@ -112,17 +122,11 @@ section{display:flex;flex-direction:column;gap:16px}
 
   <section class="live" id="try">
     <div class="live-top">
-      <div><span class="tag">초안 · 의견 받으려고 만든 페이지예요</span><h1>물품이음 디자인 시안, <em>직접 둘러보세요</em></h1><p>아래 화면을 그대로 눌러 볼 수 있어요. 시연 계정을 골라 들어가면 돼요. 모두 가상 데이터예요.</p></div>
+      <div><span class="tag">초안 · 의견 받으려고 만든 페이지예요</span><h1>물품이음 디자인 시안, <em>직접 둘러보세요</em></h1><p>아래 화면을 그대로 눌러 볼 수 있어요. 시연 계정을 골라 들어가면 돼요. 그 아래 설명은 1분이면 읽어요.</p></div>
       <div class="live-tools"><div class="seg" role="group" aria-label="화면 크기"><button type="button" data-v="pc" aria-pressed="true">PC</button><button type="button" data-v="phone" aria-pressed="false">휴대폰</button></div><a class="newwin" href="index.html" target="_blank" rel="noopener">새 창으로 크게 ↗</a></div>
     </div>
     <div class="stage" id="stage"><div class="scaler" id="scaler"><iframe id="proto" src="index.html?embed=1" title="물품이음 디자인 시안 (직접 눌러 볼 수 있음)" loading="eager"></iframe></div></div>
     <p class="hint">추천 순서: 김새빛으로 들어가기 → 홈 「오늘 할 일」 → 물품 찾기 → 물건 하나 눌러 받기 신청 → 「＋ 올리기」</p>
-  </section>
-
-  <section>
-    <h2>물품이음, <em>사진 한 장</em>이 나눔을 시작하게 해요</h2>
-    <p class="lead">아래는 디자인 방향과 실제 사이트에 입혀 본 모습을 3분 안에 볼 수 있게 줄인 설명이에요. 완성본이 아니라 방향을 맞추려는 초안이에요. 편하게 고칠 점을 알려 주세요.</p>
-    <div class="btns"><a class="l2" href="#real">실제 사이트에 입힌 모습</a><a class="l2" href="#ask">의견 주실 것만 보기</a></div>
   </section>
 
   <section>
@@ -157,53 +161,18 @@ section{display:flex;flex-direction:column;gap:16px}
     </div>
   </section>
 
-  <section>
-    <span class="eyebrow">02 · 화면 3개만</span>
-    <h2>이 세 화면이 <em>전부</em>예요</h2>
-
-    <div class="screen">
-      <img src="shots/pc-market.webp" alt="물품 찾기 화면" width="1200" height="750" loading="lazy">
-      <div class="txt"><span class="no">화면 1 · 물품 찾기</span><h3>사진으로 고르기</h3>
-        <ul><li>가까운 학교 물건부터</li><li>사진 위에 거리·수량</li><li>「증빙 확인」 표시로 믿고 신청</li></ul>
-        <p class="ask">질문: 받는 학교가 고를 때 더 필요한 정보가 있을까요?</p></div>
-    </div>
-
-    <div class="screen">
-      <img src="shots/pc-new.webp" alt="물품 올리기 화면: 5단계 중 어떤 물건인가요 단계" width="1200" height="750" loading="lazy">
-      <div class="txt"><span class="no">화면 2 · 물품 올리기</span><h3>질문에 답하듯 5단계</h3>
-        <ul><li>어떻게 올릴까요? → 어떤 물건? → 몇 개? → 불용 증빙 → 검토 요청</li><li>AI가 사진에서 이름을 제안, 「넣기」를 눌러야 반영</li><li>게시 전까지는 우리 학교만 봐요</li></ul>
-        <p class="ask">질문: 담당자가 사진을 찍어 올릴 때, 휴대폰으로 할까요 PC로 할까요?</p></div>
-    </div>
-
-    <div class="screen">
-      <img src="shots/pc-home.webp" alt="홈 화면: 오늘은 1가지만 하면 돼요" width="1200" height="750" loading="lazy">
-      <div class="txt"><span class="no">화면 3 · 홈</span><h3>「오늘은 1가지만 하면 돼요」</h3>
-        <ul><li>들어오면 내 차례인 일부터</li><li>나눔 중·받는 중을 한눈에</li><li>물품 업무를 가끔 하는 담당자도 헤매지 않게</li></ul>
-        <p class="ask">질문: 담당자가 들어오자마자 가장 먼저 알고 싶은 건 뭘까요?</p></div>
-    </div>
-  </section>
-
-  <section>
-    <span class="eyebrow">03 · 팀이 만든 기능 위에</span>
-    <h2>기능은 <em>그대로</em>, 더한 것은 이것</h2>
-    <ul class="add">
-      <li><b>「오늘 할 일」 홈</b> · 로그인하면 내 차례인 일부터 보여요</li>
-      <li><b>메뉴 묶음</b> · 모든 메뉴는 그대로, 「물품 / 우리 기관 / 업무 도우미」로 모아 보여요</li>
-      <li><b>진행 7단계 막대</b> · 물건이 지금 어디쯤인지, 누구 차례인지 한눈에</li>
-      <li><b>사진 크게</b> · 받는 학교가 사진으로 고를 수 있게</li>
-    </ul>
-    <p class="muted">서버 규칙(작성자는 스스로 게시 못 함, 수량 다르면 멈춤 등)은 하나도 바꾸지 않았어요. 화면만 더한 시안이에요.</p>
-  </section>
-
   <section id="real">
-    <span class="eyebrow">04 · 실제 사이트 코드에 입혀 본 모습</span>
-    <h2>지금 사이트(v0.9)에 <em>1단계</em>를 입혀 봤어요</h2>
-    <p>실제 사이트를 바꾼 게 아니라, 코드를 복사해서 제 저장소에서만 입혀 본 거예요. 팀에서 괜찮다고 하면 반영하면 돼요.</p>
+    <span class="eyebrow">02 · 실제 사이트에는 이렇게</span>
+    <h2>시안은 <em>최종 모습</em>, 실제 사이트에는 <em>두 번</em>에 나눠 넣어요</h2>
+    <div class="phases">
+      <div class="ph on"><span>1단계 · 준비 끝</span><b>지금 바로 넣을 수 있는 것</b><p>「오늘 할 일」 홈 · 진행 7단계 막대 · 메뉴 3묶음 · 글꼴과 로고</p><small>실제 사이트(v0.9) 코드에 입혀 두었어요</small></div>
+      <div class="ph"><span>2단계 · 의견 받고</span><b>시안처럼 더 바꾸는 것</b><p>위쪽 메뉴 4개 · 사진 크게 · 올리기 5단계 · 우리 기관 보드</p><small>팀 의견을 듣고 만들게요</small></div>
+    </div>
     <div class="ba">
       <figure><figcaption><span class="b0">v0.9</span> 지금 화면 · 로그인하면 물품 찾기</figcaption><img src="shots/real-before.webp" alt="v0.9 지금 화면: 로그인하면 물품 찾기 화면" width="1440" height="900" loading="lazy"></figure>
-      <figure><figcaption><span class="b1">1단계 적용</span> 로그인하면 「오늘 할 일」 · 메뉴는 3묶음으로</figcaption><img src="shots/real-after.webp" alt="1단계 적용: 오늘 할 일 화면, 작성·내 차례·멈춤 건수와 진행 막대, 이웃 기관 새 물품" width="1440" height="900" loading="lazy"></figure>
+      <figure><figcaption><span class="b1">1단계 넣은 뒤</span> 로그인하면 「오늘 할 일」 · 메뉴는 3묶음으로</figcaption><img src="shots/real-after.webp" alt="1단계 적용: 오늘 할 일 화면, 작성·내 차례·멈춤 건수와 진행 막대, 이웃 기관 새 물품" width="1440" height="900" loading="lazy"></figure>
     </div>
-    <p class="muted">팀원이 만든 엑셀·OZD 올리기, 조달청 보완, AI 대화창은 그대로예요. 서버 규칙·DB도 그대로예요.</p>
+    <p class="muted">실제 사이트를 바꾼 게 아니라 코드를 복사해서 제 저장소에서만 입혀 본 거예요. 엑셀·OZD 올리기, 조달청 보완, AI 대화창, 서버 규칙은 그대로예요.</p>
     <details class="dev"><summary>개발·배포 담당자용 (펼치기)</summary>
       <ul>
         <li>기준: <code>codex/v09-nas-completion</code> 7c0a69a</li>
@@ -215,17 +184,14 @@ section{display:flex;flex-direction:column;gap:16px}
   </section>
 
   <section id="ask">
-    <span class="eyebrow">05 · 의견 주실 것</span>
+    <span class="eyebrow">03 · 의견 주실 것</span>
     <h2>이것만 <em>알려 주세요</em></h2>
     <ol class="qs">
       <li>사진 먼저 보여 주는 방향, 실제 담당자에게 맞을까요?</li>
-      <li>화면 3개 중 「이건 현실과 다르다」 싶은 곳이 있나요?</li>
-      <li>위 「1단계 적용」 화면, 실제 사이트에 반영해도 괜찮을까요? (시연이 실제 사이트라 11/11 전에 들어가면 좋아요)</li>
+      <li>시안에서 「이건 현실과 다르다」 싶은 곳이 있나요?</li>
+      <li>1단계, 실제 사이트에 넣어도 괜찮을까요? (시연이 실제 사이트라 11/11 전에 들어가면 좋아요)</li>
     </ol>
-    <div class="honest">
-      <b>솔직하게 미리 말씀드리면</b>
-      <p>업무매뉴얼과 사례집을 읽고 만든 초안이라, 현장과 다른 부분이 있을 수 있어요. 시안 속 그림은 진짜 사진이 들어갈 자리이고, 기관·물건은 모두 가상이에요. 틀린 부분을 짚어 주시면 바로 고칠게요.</p>
-    </div>
+    <p class="note2">업무매뉴얼과 사례집을 바탕으로 만든 초안이에요. 그림은 사진이 들어갈 자리이고, 기관·물건은 모두 가상이에요.</p>
     <a class="try" href="#try"><div><b>시안 다시 둘러보기</b><span>맨 위에서 바로 눌러 볼 수 있어요</span></div><i>위로 ↑</i></a>
     <div class="btns"><a class="l2" href="proposal.html">자세한 개선안</a><a class="l2" href="understand.html">물품관리 쉽게 이해하기</a></div>
   </section>
